@@ -69,6 +69,13 @@ def create_wandb_run(wandb_cfg, job_config, run_id=None):
     except:
         name, notes = wandb_cfg.name, None
 
+    print(f"wandb_cfg: {wandb_cfg}")
+    print(f"job_config: {job_config}")
+    print(f"name: {name}")
+    print(f"notes: {notes}")
+    print(f"run_id: {run_id}")
+    print(f"project: {wandb_cfg.project}")
+
     wandb_run = wandb.init(
         project=wandb_cfg.project,
         group=wandb_cfg.group,

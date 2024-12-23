@@ -3,14 +3,26 @@ import numpy as np
 import genesis as gs
 from time import time, sleep
 import torch
-from data4robotics.models.diffusion_unet import DiffusionUnetAgent
+from data4robotics.models.diffusion import DiffusionTransformerAgent
+from data4robotics import load_resnet18, load_vit
 
 class DiffusionVisualizer:
     def __init__(self, model_path, device='cuda'):
-        # Load pretrained model
+        # Load pretrained vision model first
+        self.transform, self.vision_model = load_resnet18()  # or load_vit() depending on your model
+        self.vision_model.to(device)
+        self.vision_model.eval()
+        
+        # Load pretrained diffusion model
         self.device = torch.device(device)
-        checkpoint = torch.load(model_path)
-        self.model = DiffusionUnetAgent(**checkpoint['model_kwargs'])
+        checkpoint = torch.load(model_path, map_location=device)
+        
+        # Initialize model with checkpoint config
+        model_kwargs = checkpoint['model_kwargs']
+        # Override the features with our pretrained vision model
+        model_kwargs['features'] = self.vision_model
+        
+        self.model = DiffusionTransformerAgent(**model_kwargs)
         self.model.load_state_dict(checkpoint['state_dict'])
         self.model.to(device)
         self.model.eval()
@@ -23,12 +35,22 @@ class DiffusionVisualizer:
     def run_diffusion_step(self, obs_dict, noise_actions, timestep):
         """Run a single step of the diffusion process"""
         with torch.no_grad():
+            # Transform images using the pretrained model's transform
+            if 'images' in obs_dict:
+                obs_dict['images'] = self.transform(obs_dict['images'])
+            
             B = noise_actions.shape[0]
-            s_t = self.model.tokenize_obs(obs_dict['images'], obs_dict['states'], flatten=True)
+            s_t = self.model.tokenize_obs(obs_dict['images'], obs_dict['states'])
+            
+            # For transformer model, we need encoder cache
+            if not hasattr(self, 'enc_cache'):
+                self.enc_cache = self.noise_net.forward_enc(s_t)
             
             # Predict noise and take diffusion step
             batched_timestep = timestep.unsqueeze(0).repeat(B).to(self.device)
-            noise_pred = self.noise_net(noise_actions, batched_timestep, s_t)
+            noise_pred = self.noise_net.forward_dec(
+                noise_actions, batched_timestep, self.enc_cache
+            )
             
             noise_actions = self.diffusion_schedule.step(
                 model_output=noise_pred,
