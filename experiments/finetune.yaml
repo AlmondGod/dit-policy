@@ -44,4 +44,4 @@ wandb:
   group: ${exp_name}
   sweep_name_prefix: eval
   debug: False
-  entity: Anand
+  entity: anandmajmudar1-university-of-pennsylvania
