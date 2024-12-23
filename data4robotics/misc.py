@@ -61,6 +61,11 @@ def set_checkpoint_handler(trainer, ckpt_path):
 def create_wandb_run(wandb_cfg, job_config, run_id=None):
     if wandb_cfg.debug:
         return "null_id"
+    
+    # Set environment variables for Colab compatibility
+    os.environ["WANDB_MODE"] = "online"  # Force online mode
+    os.environ["WANDB_SILENT"] = "true"
+    
     try:
         job_id = HydraConfig().get().job.num
         override_dirname = HydraConfig().get().job.override_dirname
@@ -76,17 +81,23 @@ def create_wandb_run(wandb_cfg, job_config, run_id=None):
     print(f"run_id: {run_id}")
     print(f"project: {wandb_cfg.project}")
 
-    wandb_run = wandb.init(
-        project=wandb_cfg.project,
-        group=wandb_cfg.group,
-        entity=wandb_cfg.entity,
-        config=job_config,
-        name=name,
-        notes=notes,
-        id=run_id,
-        resume=run_id is not None,
-    )
-    return wandb_run.id
+    try:
+        wandb_run = wandb.init(
+            project=wandb_cfg.project,
+            group=wandb_cfg.group,
+            entity=wandb_cfg.entity,
+            config=job_config,
+            name=name,
+            notes=notes,
+            id=run_id,
+            resume=run_id is not None,
+            settings=wandb.Settings(start_method="thread")
+        )
+        return wandb_run.id
+    except Exception as e:
+        print(f"WandB initialization failed: {e}")
+        print("Continuing without WandB logging...")
+        return "null_id"
 
 
 def init_job(cfg):
