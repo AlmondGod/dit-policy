@@ -44,4 +44,4 @@ wandb:
   group: ${exp_name}
   sweep_name_prefix: eval
   debug: False
-  entity: cmu-agi-lab
+  entity: Anand
