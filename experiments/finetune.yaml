@@ -43,5 +43,5 @@ wandb:
   project: human_aloha
   group: ${exp_name}
   sweep_name_prefix: eval
-  debug: False
+  debug: True
   entity: anandmajmudar1
