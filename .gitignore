@@ -6,3 +6,6 @@ __pycache__/
 bc_finetune/
 visual_features/
 *.egg-info/
+
+.DS_Store
+buf.pkl
