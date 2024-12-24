@@ -30,15 +30,28 @@ class DiffusionVisualizer:
             print("Initializing diffusion model...")
             # Create a new model instance with default parameters
             self.model = DiffusionTransformerAgent(
-                ac_dim=6,  # XYZ coordinates
-                ac_chunk=100,  # From your finetune.py command
-                odim=7,  # obs dim
-                horizon=100,  # Same as ac_chunk
-                n_obs_steps=1,  # Single observation
-                n_action_steps=100,  # Same as ac_chunk
-                n_latency_steps=0,  # No latency
-                n_diffusion_steps=100,  # Default diffusion steps
-                feature_dim=512,  # ResNet feature dimension
+                features=None,  # Will be set by state dict
+                odim=7,  # From task.obs_dim in config
+                n_cams=1,  # From task.n_cams in config
+                use_obs="add_token",  # From config
+                ac_dim=6,  # From task.ac_dim in config
+                ac_chunk=100,  # From config
+                train_diffusion_steps=100,  # From config
+                eval_diffusion_steps=8,  # From config
+                imgs_per_cam=1,  # Default value
+                dropout=0.1,  # From config
+                share_cam_features=False,  # From config
+                early_fusion=False,  # From config
+                feat_norm=None,  # From config
+                noise_net_kwargs={
+                    'time_dim': 256,
+                    'hidden_dim': 512,
+                    'num_blocks': 6,
+                    'dim_feedforward': 2048,
+                    'dropout': 0.1,
+                    'nhead': 8,
+                    'activation': "gelu"
+                }
             )
             
             # Load the state dictionary
