@@ -4,12 +4,13 @@ import genesis as gs
 from time import time, sleep
 import torch
 from data4robotics.models.diffusion import DiffusionTransformerAgent
-from data4robotics import load_resnet18, load_vit
+from data4robotics import load_resnet18
+from observations import DummyObs
 
 class DiffusionVisualizer:
     def __init__(self, model_path, device='cuda'):
         # Load pretrained vision model first
-        self.transform, self.vision_model = load_resnet18()  # or load_vit() depending on your model
+        self.transform, self.vision_model = load_resnet18()
         self.vision_model.to(device)
         self.vision_model.eval()
         
@@ -19,7 +20,6 @@ class DiffusionVisualizer:
         
         # Initialize model with checkpoint config
         model_kwargs = checkpoint['model_kwargs']
-        # Override the features with our pretrained vision model
         model_kwargs['features'] = self.vision_model
         
         self.model = DiffusionTransformerAgent(**model_kwargs)
@@ -35,12 +35,17 @@ class DiffusionVisualizer:
     def run_diffusion_step(self, obs_dict, noise_actions, timestep):
         """Run a single step of the diffusion process"""
         with torch.no_grad():
-            # Transform images using the pretrained model's transform
-            if 'images' in obs_dict:
-                obs_dict['images'] = self.transform(obs_dict['images'])
+            # Create proper observation format
+            obs = DummyObs()
+            images = obs.image(0)[None, None]  # Add batch and time dimensions
+            states = obs.state[None, None]  # Add batch and time dimensions
+            
+            # Convert to tensors and move to device
+            images = torch.from_numpy(images).float().to(self.device) / 255.0
+            states = torch.from_numpy(states).float().to(self.device)
             
             B = noise_actions.shape[0]
-            s_t = self.model.tokenize_obs(obs_dict['images'], obs_dict['states'])
+            s_t = self.model.tokenize_obs(images, states)
             
             # For transformer model, we need encoder cache
             if not hasattr(self, 'enc_cache'):
@@ -60,8 +65,7 @@ class DiffusionVisualizer:
             
             return noise_actions
 
-def run_sim(scene, visualizer, obs_dict):
-    n_particles = 100  # Should match your action sequence length
+def run_sim(scene, visualizer):
     n_steps = visualizer.model._train_diffusion_steps
     
     # Initialize noise
@@ -80,28 +84,25 @@ def run_sim(scene, visualizer, obs_dict):
     t_prev = time()
     for t, timestep in enumerate(visualizer.diffusion_schedule.timesteps):
         # Run diffusion step
-        noise_actions = visualizer.run_diffusion_step(obs_dict, noise_actions, timestep)
+        noise_actions = visualizer.run_diffusion_step({}, noise_actions, timestep)
         
-        # Convert actions to particle positions
-        # Assuming actions are end-effector positions in 3D space
+        # Convert actions to particle positions (xyz only)
         positions = noise_actions[0].detach().cpu().numpy()  # [T, 3]
         
         # Update particle positions in simulator
-        # Note: You'll need to implement these methods based on your Genesis setup
         scene.update_particle_positions(positions)
         scene.step()
         
         # FPS tracking
         t_now = time()
-        print(1 / (t_now - t_prev), "FPS")
+        print(f"Step {t}/{n_steps}, {1/(t_now - t_prev):.1f} FPS")
         t_prev = t_now
-        sleep(0.0005)  # Small delay to control simulation speed
+        sleep(0.0005)
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("-v", "--vis", action="store_true", default=False)
     parser.add_argument("-m", "--model_path", required=True, help="Path to model checkpoint")
-    parser.add_argument("-o", "--obs_path", required=True, help="Path to observation file")
     args = parser.parse_args()
 
     # Initialize Genesis
@@ -137,14 +138,13 @@ def main():
 
     scene.build()
 
-    # Load model and observation
+    # Load model and run visualization
     visualizer = DiffusionVisualizer(args.model_path)
-    obs_dict = torch.load(args.obs_path)  # You'll need to implement loading your observations
-
+    
     # Run simulation in another thread
     gs.tools.run_in_another_thread(
         fn=run_sim, 
-        args=(scene, visualizer, obs_dict)
+        args=(scene, visualizer)
     )
     
     if args.vis:
