@@ -1,5 +1,5 @@
-# observation.py
 import numpy as np
+import copy
 
 class DummyImage:
     def __init__(self):
@@ -15,20 +15,43 @@ class DummyImage:
 
 class DummyObs:
     def __init__(self):
-        self.state = np.zeros(7, dtype=np.float32)
-        self._image = DummyImage()
+        # Create internal dictionary storage
+        self._obs = {
+            'state': np.zeros(7, dtype=np.float32),
+            'enc_cam_0': self._create_encoded_image()
+        }
         self.prev = None
-        self._dict = {}  # Internal dictionary to support dict-like behavior
+    
+    def _create_encoded_image(self):
+        # Create a checkerboard pattern
+        x = np.arange(256)[:, None]
+        y = np.arange(256)[None, :]
+        checker = ((x + y) % 32 < 16).astype(np.uint8) * 255
+        img = np.stack([checker] * 3, axis=-1)
+        return img.tobytes()  # Convert to bytes to simulate encoded image
+    
+    @property
+    def state(self):
+        return self._obs['state']
     
     def image(self, cam_idx):
-        return self._image.image(cam_idx)
+        # Return RGB image of shape (H, W, 3)
+        x = np.arange(256)[:, None]
+        y = np.arange(256)[None, :]
+        checker = ((x + y) % 32 < 16).astype(np.uint8) * 255
+        return np.stack([checker] * 3, axis=-1)
     
-    # Add dictionary-like interface
     def keys(self):
-        return self._dict.keys()
+        return self._obs.keys()
     
     def __getitem__(self, key):
-        return self._dict[key]
+        return self._obs[key]
     
-    def __setitem__(self, key, value):
-        self._dict[key] = value
+    def to_dict(self):
+        return copy.deepcopy(self._obs)
+    
+    @classmethod
+    def from_dict(cls, obs_dict):
+        obs = cls()
+        obs._obs = copy.deepcopy(obs_dict)
+        return obs
