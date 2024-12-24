@@ -47,6 +47,9 @@ class DiffusionVisualizer:
             checkpoint = torch.load(model_path, map_location=device)
             print("Checkpoint loaded successfully", flush=True)
             
+            # Debug: Print checkpoint keys
+            print("Available keys in checkpoint:", list(checkpoint.keys()), flush=True)
+            
             print("Initializing diffusion model...", flush=True)
             model_kwargs = checkpoint['model_kwargs']
             # The vision model is already included in the checkpoint
