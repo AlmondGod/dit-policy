@@ -26,15 +26,16 @@ class DiffusionVisualizer:
             print("Available keys in checkpoint:", list(checkpoint.keys()))
             
             print("Loading ResNet18...")
-            # First create a base ResNet18 model
+            # Create a pretrained ResNet18
             import torchvision.models as models
-            resnet = models.resnet18()
-            # Load the pretrained weights - handle potential nested state dict
+            resnet = models.resnet18(pretrained=True)  # Use pretrained model
+            
+            # Load your custom weights with strict=False
             resnet_state_dict = torch.load('/content/IN_1M_resnet18.pth', map_location=device)
             if 'model' in resnet_state_dict:
                 resnet_state_dict = resnet_state_dict['model']
             
-            # Fix the state dict keys by removing '_model.' prefix
+            # Fix the state dict keys
             fixed_state_dict = {}
             for k, v in resnet_state_dict.items():
                 if k.startswith('_model.'):
@@ -42,8 +43,8 @@ class DiffusionVisualizer:
                 else:
                     fixed_state_dict[k] = v
                     
-            # Load the fixed state dict
-            resnet.load_state_dict(fixed_state_dict)
+            # Load with strict=False to allow missing keys
+            resnet.load_state_dict(fixed_state_dict, strict=False)
             print("ResNet18 loaded successfully")
             
             print("Loading state dict keys:", checkpoint['model'].keys())
