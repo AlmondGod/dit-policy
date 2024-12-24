@@ -6,6 +6,9 @@ import torch
 from data4robotics.models.diffusion import DiffusionTransformerAgent
 from data4robotics import load_resnet18
 from observations import DummyObs
+from pyvirtualdisplay import Display
+from IPython import display
+import imageio
 
 class DiffusionVisualizer:
     def __init__(self, model_path, device='cuda'):
@@ -65,7 +68,7 @@ class DiffusionVisualizer:
             
             return noise_actions
 
-def run_sim(scene, visualizer):
+def run_sim(scene, visualizer, frames):
     n_steps = visualizer.model._train_diffusion_steps
     
     # Initialize noise
@@ -93,6 +96,10 @@ def run_sim(scene, visualizer):
         scene.update_particle_positions(positions)
         scene.step()
         
+        # Capture frame
+        frame = scene.render()
+        frames.append(frame)
+        
         # FPS tracking
         t_now = time()
         print(f"Step {t}/{n_steps}, {1/(t_now - t_prev):.1f} FPS")
@@ -101,9 +108,12 @@ def run_sim(scene, visualizer):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-v", "--vis", action="store_true", default=False)
     parser.add_argument("-m", "--model_path", required=True, help="Path to model checkpoint")
     args = parser.parse_args()
+
+    # Start virtual display for headless rendering
+    virtual_display = Display(visible=0, size=(800, 600))
+    virtual_display.start()
 
     # Initialize Genesis
     gs.init(backend=gs.cpu)
@@ -119,8 +129,9 @@ def main():
             camera_pos=(3.5, 0.0, 2.5),
             camera_lookat=(0.0, 0.0, 0.5),
             camera_fov=40,
+            resolution=(800, 600),
         ),
-        show_viewer=args.vis
+        show_viewer=False  # Headless mode
     )
 
     # Initialize particles for visualization
@@ -141,14 +152,23 @@ def main():
     # Load model and run visualization
     visualizer = DiffusionVisualizer(args.model_path)
     
-    # Run simulation in another thread
-    gs.tools.run_in_another_thread(
-        fn=run_sim, 
-        args=(scene, visualizer)
-    )
+    # Create list to store frames
+    frames = []
     
-    if args.vis:
-        scene.viewer.start()
+    # Run simulation and collect frames
+    run_sim(scene, visualizer, frames)
+    
+    # Save animation
+    print("Saving animation...")
+    imageio.mimsave('diffusion_visualization.gif', frames, fps=30)
+    
+    # Display the animation in Colab
+    with open('diffusion_visualization.gif', 'rb') as f:
+        display.display(display.Image(data=f.read(), format='gif'))
 
 if __name__ == "__main__":
+    # Install required packages
+    import os
+    os.system('apt-get install -y xvfb python-opengl')
+    os.system('pip install pyvirtualdisplay imageio')
     main()
