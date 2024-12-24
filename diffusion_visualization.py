@@ -4,6 +4,11 @@ import argparse
 import numpy as np
 import torch
 import imageio
+import sys
+sys.stdout.flush()
+
+from IPython.display import clear_output
+clear_output(wait=True)
 
 try:
     print("Importing genesis...", flush=True)
