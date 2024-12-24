@@ -15,23 +15,33 @@ class DummyImage:
         return img
 
 class DummyObs:
-    def __init__(self):
-        self._obs = {
-            'state': np.zeros(7, dtype=np.float32),
-            'enc_cam_0': self._create_encoded_image()
-        }
+    def __init__(self, obs_dict=None):
+        if obs_dict is None:
+            self._obs = {
+                'state': np.zeros(7, dtype=np.float32),
+                'enc_cam_0': self._create_encoded_image()
+            }
+        else:
+            self._obs = obs_dict
         self.prev = None
     
     def _create_encoded_image(self):
-        # Create a checkerboard pattern
         x = np.arange(256)[:, None]
         y = np.arange(256)[None, :]
         checker = ((x + y) % 32 < 16).astype(np.uint8) * 255
         img = np.stack([checker] * 3, axis=-1)
-        # Convert to BGR for OpenCV
         bgr_img = img[:, :, ::-1]
         _, encoded = cv2.imencode(".jpg", bgr_img)
         return encoded.tobytes()
+    
+    def __getstate__(self):
+        """Tell pickle what to save"""
+        return {'_obs': self._obs, 'prev': self.prev}
+    
+    def __setstate__(self, state):
+        """Tell pickle how to restore"""
+        self._obs = state['_obs']
+        self.prev = state['prev']
     
     @property
     def state(self):
@@ -43,7 +53,6 @@ class DummyObs:
         rgb_image = bgr_image[:, :, ::-1]
         return rgb_image
     
-    # Dictionary interface methods
     def keys(self):
         return self._obs.keys()
     
@@ -55,9 +64,3 @@ class DummyObs:
     
     def to_dict(self):
         return copy.deepcopy(self._obs)
-    
-    @classmethod
-    def from_dict(cls, obs_dict):
-        obs = cls()
-        obs._obs = copy.deepcopy(obs_dict)
-        return obs
