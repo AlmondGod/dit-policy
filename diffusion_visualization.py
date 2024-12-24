@@ -158,6 +158,9 @@ def run_sim(scene, visualizer, frames, particles):
     # Initialize noise actions
     noise_actions = torch.randn(1, 6).to(visualizer.device)  # [batch_size, action_dim]
     
+    # Get number of particles from the entity
+    n_particles = particles._n_particles
+    
     t_prev = time()
     for timestep in visualizer.diffusion_schedule.timesteps:
         print(f"running diffusion step {timestep}")
@@ -165,8 +168,14 @@ def run_sim(scene, visualizer, frames, particles):
         # Run diffusion step
         noise_actions = visualizer.run_diffusion_step({}, noise_actions, timestep)
         
-        # Get positions from noise actions
-        positions = noise_actions.detach().cpu().numpy()[0]  # [action_dim]
+        # Get positions from noise actions and reshape for particles
+        action = noise_actions.detach().cpu().numpy()[0]  # [6]
+        
+        # Create particle positions by repeating the action for each particle
+        # and adding some noise to create a cloud around the point
+        positions = np.tile(action[:3], (n_particles, 1))  # [n_particles, 3]
+        noise = np.random.normal(0, 0.05, (n_particles, 3))  # Small noise for visualization
+        positions = positions + noise
         
         # Update particle positions
         particles.set_position(positions)
@@ -175,14 +184,13 @@ def run_sim(scene, visualizer, frames, particles):
         scene.step()
         
         print(f"rendering frame {timestep}", flush=True)
-        # Capture frame
         frame = scene.render()
         frames.append(frame)
         
         t_now = time()
         print(1 / (t_now - t_prev), "FPS")
         t_prev = t_now
-        sleep(0.0005)  # Small delay to control simulation speed
+        sleep(0.0005)
 
     if scene.viewer is not None:
         scene.viewer.stop()
