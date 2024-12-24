@@ -26,38 +26,10 @@ class DiffusionVisualizer:
             print("Checkpoint loaded successfully")
             print("Available keys in checkpoint:", list(checkpoint.keys()))
             
-            print("Loading ResNet18...")
-            # Create custom ResNet with GroupNorm
-            resnet = ResNet(
-                size=18,
-                norm_cfg={"name": "group_norm", "num_groups": 32},
-                weights="IMAGENET1K_V1",
-                avg_pool=False  # Following resnet_gn_nopool config
-            )
-            
-            # Load your custom weights with strict=False
-            resnet_state_dict = torch.load('/content/IN_1M_resnet18.pth', map_location=device)
-            if 'model' in resnet_state_dict:
-                resnet_state_dict = resnet_state_dict['model']
-            
-            # Fix the state dict keys
-            fixed_state_dict = {}
-            for k, v in resnet_state_dict.items():
-                if k.startswith('_model.'):
-                    fixed_state_dict[k.replace('_model.', '')] = v
-                else:
-                    fixed_state_dict[k] = v
-                    
-            # Load with strict=False to allow missing keys
-            resnet.load_state_dict(fixed_state_dict, strict=False)
-            print("ResNet18 loaded successfully")
-            
-            print("Loading state dict keys:", checkpoint['model'].keys())
-            
             print("Initializing diffusion model...")
             # Create a new model instance with parameters from diffusion.yaml
             self.model = DiffusionTransformerAgent(
-                features=resnet,  # Use properly initialized ResNet
+                features="resnet_gn_nopool",  # Let the model handle feature extraction
                 odim=7,  # From task.obs_dim in config
                 n_cams=1,  # From task.n_cams in config
                 use_obs="add_token",  # From config
@@ -86,10 +58,6 @@ class DiffusionVisualizer:
             self.model.to(device)
             self.model.eval()
             print("Diffusion model initialized successfully")
-            
-            # Get the vision model from the loaded model
-            self.vision_model = self.model.features
-            self.vision_model.eval()
             
             self.model._eval_diffusion_steps = 100
             self.diffusion_schedule = self.model.diffusion_schedule
