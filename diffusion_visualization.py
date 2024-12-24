@@ -30,6 +30,9 @@ class DiffusionVisualizer:
             import torchvision.models as models
             resnet = models.resnet18(pretrained=True)  # Use pretrained model
             
+            # Add embed_dim attribute - ResNet18's final feature dimension is 512
+            resnet.embed_dim = 512
+            
             # Load your custom weights with strict=False
             resnet_state_dict = torch.load('/content/IN_1M_resnet18.pth', map_location=device)
             if 'model' in resnet_state_dict:
