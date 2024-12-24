@@ -196,9 +196,9 @@ def main():
     scene.build()
     print("Scene built successfully")
     
-    # print("\nInitializing visualizer...")
-    # visualizer = DiffusionVisualizer(args.model_path)
-    # print("Visualizer initialized")
+    print("\nInitializing visualizer...")
+    visualizer = DiffusionVisualizer(args.model_path)
+    print("Visualizer initialized")
     
     # frames = []
     # print("\nStarting simulation...")
