@@ -25,8 +25,13 @@ class DiffusionVisualizer:
             print("Checkpoint loaded successfully")
             print("Available keys in checkpoint:", list(checkpoint.keys()))
             
-            print("Loading ResNet18 from pretrained path...")
-            features = torch.load('/content/IN_1M_resnet18.pth', map_location=device)
+            print("Loading ResNet18...")
+            # First create a base ResNet18 model
+            import torchvision.models as models
+            resnet = models.resnet18()
+            # Load the pretrained weights
+            resnet_state_dict = torch.load('/content/IN_1M_resnet18.pth', map_location=device)
+            resnet.load_state_dict(resnet_state_dict)
             print("ResNet18 loaded successfully")
             
             print("Loading state dict keys:", checkpoint['model'].keys())
@@ -34,7 +39,7 @@ class DiffusionVisualizer:
             print("Initializing diffusion model...")
             # Create a new model instance with default parameters
             self.model = DiffusionTransformerAgent(
-                features=features,  # Use loaded ResNet
+                features=resnet,  # Use properly initialized ResNet
                 odim=7,  # From task.obs_dim in config
                 n_cams=1,  # From task.n_cams in config
                 use_obs="add_token",  # From config
