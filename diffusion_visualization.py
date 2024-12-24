@@ -125,8 +125,8 @@ class DiffusionVisualizer:
             image_dict = {"cam0": images}  # Model expects dict with camera keys
             
             B = noise_actions.shape[0]
-            print(f"image_dict shape: {image_dict.shape}, states shape: {states.shape}")
             s_t = self.model.tokenize_obs(image_dict, states)
+            
             
             # For transformer model, we need encoder cache
             if not hasattr(self, 'enc_cache'):
