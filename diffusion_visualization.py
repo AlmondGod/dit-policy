@@ -194,8 +194,8 @@ def run_sim(scene, visualizer, frames, particles):
         scene.step()
         
         print(f"rendering frame {timestep}", flush=True)
-        frame = scene.render()
-        frames.append(frame)
+        # frame = scene.render()
+        # frames.append(frame)
         
         t_now = time()
         print(1 / (t_now - t_prev), "FPS")
