@@ -15,31 +15,44 @@ class DummyImage:
 
 class DummyObs:
     def __init__(self):
-        # Create internal dictionary storage
+        self.state = np.zeros(7, dtype=np.float32)
+        self._image = DummyImage()
+        self.prev = None
+        self._init_obs()
+    
+    def _init_obs(self):
+        """Initialize the observation dictionary"""
         self._obs = {
-            'state': np.zeros(7, dtype=np.float32),
+            'state': self.state,
             'enc_cam_0': self._create_encoded_image()
         }
-        self.prev = None
     
     def _create_encoded_image(self):
-        # Create a checkerboard pattern
+        """Create a checkerboard pattern and encode it"""
         x = np.arange(256)[:, None]
         y = np.arange(256)[None, :]
         checker = ((x + y) % 32 < 16).astype(np.uint8) * 255
         img = np.stack([checker] * 3, axis=-1)
-        return img.tobytes()  # Convert to bytes to simulate encoded image
+        return img.tobytes()
     
-    @property
-    def state(self):
-        return self._obs['state']
+    def __getstate__(self):
+        """Called when pickling"""
+        return {
+            'state': self.state,
+            'prev': self.prev,
+            '_image': self._image
+        }
+    
+    def __setstate__(self, state_dict):
+        """Called when unpickling"""
+        self.state = state_dict['state']
+        self.prev = state_dict['prev']
+        self._image = state_dict['_image']
+        self._init_obs()
     
     def image(self, cam_idx):
-        # Return RGB image of shape (H, W, 3)
-        x = np.arange(256)[:, None]
-        y = np.arange(256)[None, :]
-        checker = ((x + y) % 32 < 16).astype(np.uint8) * 255
-        return np.stack([checker] * 3, axis=-1)
+        """Return RGB image of shape (H, W, 3)"""
+        return self._image.image(cam_idx)
     
     def keys(self):
         return self._obs.keys()
