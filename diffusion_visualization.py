@@ -91,6 +91,8 @@ class DiffusionVisualizer:
             # The feature extractor is likely stored in visual_features
             self.vision_model = self.model.visual_features[0]  # Based on the checkpoint keys
             self.vision_model.eval()
+
+
             
             self.model._eval_diffusion_steps = 100
             self.diffusion_schedule = self.model.diffusion_schedule
@@ -222,18 +224,18 @@ def main():
     
     visualizer = DiffusionVisualizer(args.model_path)
     
-    # frames = []
-    # print("\nStarting simulation...")
-    # run_sim(scene, visualizer, frames)
+    frames = []
+    print("\nStarting simulation...")
+    run_sim(scene, visualizer, frames)
     
-    # print("\nSaving animation...")
-    # imageio.mimsave('diffusion_visualization.gif', frames, fps=30)
-    # print("Animation saved")
+    print("\nSaving animation...")
+    imageio.mimsave('diffusion_visualization.gif', frames, fps=30)
+    print("Animation saved")
     
-    # print("\nDisplaying result...")
-    # with open('diffusion_visualization.gif', 'rb') as f:
-    #     display.display(display.Image(data=f.read(), format='gif'))
-    # print("Display complete")
+    print("\nDisplaying result...")
+    with open('diffusion_visualization.gif', 'rb') as f:
+        display.display(display.Image(data=f.read(), format='gif'))
+    print("Display complete")
 
 if __name__ == "__main__":
     main()
