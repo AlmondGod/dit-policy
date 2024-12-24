@@ -151,16 +151,12 @@ class DiffusionVisualizer:
             
             return noise_actions
 
-def run_sim(scene, visualizer, frames):
+def run_sim(scene, visualizer, frames, particles):
     """Run simulation with visualization"""
     print("Starting simulation...")
     
     # Initialize noise actions
     noise_actions = torch.randn(1, 6).to(visualizer.device)  # [batch_size, action_dim]
-    
-    # Get the entities we created
-    target_particles = scene.entities[0]  # Red particles
-    noise_particles = scene.entities[1]   # Blue particles
     
     t_prev = time()
     for timestep in visualizer.diffusion_schedule.timesteps:
@@ -173,8 +169,7 @@ def run_sim(scene, visualizer, frames):
         positions = noise_actions.detach().cpu().numpy()[0]  # [action_dim]
         
         # Update particle positions
-        target_particles.morph.pos = positions[:3]  # Update target particle positions
-        noise_particles.morph.pos = positions[3:]   # Update noise particle positions
+        particles.set_position(positions)
         
         # Step simulation
         scene.step()
@@ -236,7 +231,7 @@ def main():
     
     frames = []
     print("\nStarting simulation...")
-    run_sim(scene, visualizer, frames)
+    run_sim(scene, visualizer, frames, particles)
     
     print("\nSaving animation...")
     imageio.mimsave('diffusion_visualization.gif', frames, fps=30)
