@@ -157,9 +157,9 @@ def main():
     print(f"Arguments parsed: {args}", flush=True)
     
     print("\nInitializing virtual display...")
-    # virtual_display = Display(visible=0, size=(800, 600))
-    # virtual_display.start()
-    # print("Virtual display started")
+    virtual_display = Display(visible=0, size=(800, 600))
+    virtual_display.start()
+    print("Virtual display started")
     
     # print("\nInitializing Genesis...")
     # gs.init(backend=gs.cpu)
