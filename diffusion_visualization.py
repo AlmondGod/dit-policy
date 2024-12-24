@@ -26,20 +26,26 @@ class DiffusionVisualizer:
             print("Available keys in checkpoint:", list(checkpoint.keys()))
             
             print("Loading ResNet18...")
-            # First create a base ResNet18 model
             import torchvision.models as models
             resnet = models.resnet18()
-            # Load the pretrained weights - handle potential nested state dict
             resnet_state_dict = torch.load('/content/IN_1M_resnet18.pth', map_location=device)
-            if 'model' in resnet_state_dict:
-                resnet_state_dict = resnet_state_dict['model']
-            resnet.load_state_dict(resnet_state_dict)
+            
+            # Fix the state dict keys by removing '_model.' prefix
+            fixed_state_dict = {}
+            for k, v in resnet_state_dict.items():
+                if k.startswith('_model.'):
+                    fixed_state_dict[k.replace('_model.', '')] = v
+                else:
+                    fixed_state_dict[k] = v
+                    
+            # Load the fixed state dict
+            resnet.load_state_dict(fixed_state_dict)
             print("ResNet18 loaded successfully")
             
             print("Loading state dict keys:", checkpoint['model'].keys())
             
             print("Initializing diffusion model...")
-            # Create a new model instance with default parameters
+            # Create a new model instance with parameters from diffusion.yaml
             self.model = DiffusionTransformerAgent(
                 features=resnet,  # Use properly initialized ResNet
                 odim=7,  # From task.obs_dim in config
