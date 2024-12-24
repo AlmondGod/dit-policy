@@ -99,6 +99,9 @@ class DiffusionVisualizer:
             self.diffusion_schedule = self.model.diffusion_schedule
             self.noise_net = self.model.noise_net
             
+            # Set up diffusion timesteps
+            self.diffusion_schedule.set_timesteps(num_inference_steps=1000)
+            
         except Exception as e:
             print("Error in DiffusionVisualizer initialization:", e)
             print("Exception type:", type(e))
@@ -155,15 +158,12 @@ def run_sim(scene, visualizer, frames):
     # Initialize noise actions
     noise_actions = torch.randn(1, 6).to(visualizer.device)  # [batch_size, action_dim]
     
-    # Number of diffusion steps (typically defined in the model)
-    num_diffusion_steps = 1000  # This should match the model's training configuration
-    
     t_prev = time()
-    for t in range(num_diffusion_steps-1, -1, -1):  # Start from T-1, go to 0
-        print(f"running diffusion step {t}")
+    # Use the timesteps from the schedule
+    for timestep in visualizer.diffusion_schedule.timesteps:
+        print(f"running diffusion step {timestep}")
         
         # Run diffusion step
-        timestep = torch.tensor([t]).long()
         noise_actions = visualizer.run_diffusion_step({}, noise_actions, timestep)
         
         # Get positions from noise actions
@@ -173,12 +173,11 @@ def run_sim(scene, visualizer, frames):
         scene.particle_state.x[...] = positions[:3]  # Update positions
         scene.step()
         
-        print(f"rendering frame {t}", flush=True)
+        print(f"rendering frame {timestep}", flush=True)
         # Capture frame
         frame = scene.render()
         frames.append(frame)
         
-        # FPS tracking
         t_now = time()
         print(1 / (t_now - t_prev), "FPS")
         t_prev = t_now
