@@ -1,39 +1,67 @@
+print("Script starting - top level")
+
 import argparse
 import numpy as np
-import genesis as gs
-from time import time, sleep
 import torch
-from data4robotics.models.diffusion import DiffusionTransformerAgent
-from data4robotics import load_resnet18
-from observations import DummyObs
-from pyvirtualdisplay import Display
-from IPython import display
 import imageio
 
+try:
+    print("Importing genesis...")
+    import genesis as gs
+    print("Genesis imported successfully")
+except Exception as e:
+    print("Failed to import genesis:", e)
+    raise
+
+try:
+    print("Importing display modules...")
+    from pyvirtualdisplay import Display
+    from IPython import display
+    print("Display modules imported successfully")
+except Exception as e:
+    print("Failed to import display modules:", e)
+    raise
+
+try:
+    print("Importing custom modules...")
+    from data4robotics.models.diffusion import DiffusionTransformerAgent
+    from data4robotics import load_resnet18
+    from observations import DummyObs
+    print("Custom modules imported successfully")
+except Exception as e:
+    print("Failed to import custom modules:", e)
+    raise
+
 class DiffusionVisualizer:
-    def __init__(self, model_path, device='cuda'):
-        # Load pretrained vision model first
-        self.transform, self.vision_model = load_resnet18()
-        self.vision_model.to(device)
-        self.vision_model.eval()
-        
-        # Load pretrained diffusion model
-        self.device = torch.device(device)
-        checkpoint = torch.load(model_path, map_location=device)
-        
-        # Initialize model with checkpoint config
-        model_kwargs = checkpoint['model_kwargs']
-        model_kwargs['features'] = self.vision_model
-        
-        self.model = DiffusionTransformerAgent(**model_kwargs)
-        self.model.load_state_dict(checkpoint['state_dict'])
-        self.model.to(device)
-        self.model.eval()
-        
-        # Set up diffusion parameters
-        self.model._eval_diffusion_steps = 100  # We want to visualize all steps
-        self.diffusion_schedule = self.model.diffusion_schedule
-        self.noise_net = self.model.noise_net
+    def __init__(self, model_path, device='cpu'):  # Changed default to CPU
+        print(f"Initializing DiffusionVisualizer with device: {device}")
+        try:
+            print("Loading vision model...")
+            self.transform, self.vision_model = load_resnet18()
+            self.vision_model.to(device)
+            self.vision_model.eval()
+            print("Vision model loaded successfully")
+            
+            print("Loading checkpoint...")
+            self.device = torch.device(device)
+            checkpoint = torch.load(model_path, map_location=device)
+            print("Checkpoint loaded successfully")
+            
+            print("Initializing diffusion model...")
+            model_kwargs = checkpoint['model_kwargs']
+            model_kwargs['features'] = self.vision_model
+            self.model = DiffusionTransformerAgent(**model_kwargs)
+            self.model.load_state_dict(checkpoint['state_dict'])
+            self.model.to(device)
+            self.model.eval()
+            print("Diffusion model initialized successfully")
+            
+            self.model._eval_diffusion_steps = 100
+            self.diffusion_schedule = self.model.diffusion_schedule
+            self.noise_net = self.model.noise_net
+        except Exception as e:
+            print("Error in DiffusionVisualizer initialization:", e)
+            raise
 
     def run_diffusion_step(self, obs_dict, noise_actions, timestep):
         """Run a single step of the diffusion process"""
@@ -113,24 +141,24 @@ def run_sim(scene, visualizer, frames):
         sleep(0.0005)
 
 def main():
-
-    print("starting main")
-
+    print("\n=== Starting main() ===")
+    
+    print("Parsing arguments...")
     parser = argparse.ArgumentParser()
-    parser.add_argument("-m", "--model_path", required=True, help="Path to model checkpoint")
+    parser.add_argument("-m", "--model_path", required=True)
     args = parser.parse_args()
-
-    print("starting virtual display")
-    # Start virtual display for headless rendering
+    print(f"Arguments parsed: {args}")
+    
+    print("\nInitializing virtual display...")
     virtual_display = Display(visible=0, size=(800, 600))
     virtual_display.start()
-
-    print("starting genesis")
-    # Initialize Genesis
+    print("Virtual display started")
+    
+    print("\nInitializing Genesis...")
     gs.init(backend=gs.cpu)
-
-    print("creating scene")
-    # Create scene with appropriate camera settings
+    print("Genesis initialized")
+    
+    print("\nCreating scene...")
     scene = gs.Scene(
         sim_options=gs.options.SimOptions(dt=4e-3, substeps=10),
         mpm_options=gs.options.MPMOptions(
@@ -142,11 +170,11 @@ def main():
             camera_lookat=(0.0, 0.0, 0.5),
             camera_fov=40,
         ),
-        show_viewer=False  # Headless mode
+        show_viewer=False
     )
-
-    print("adding particles")
-    # Initialize particles for visualization
+    print("Scene created")
+    
+    print("\nSetting up visualization...")
     particles = scene.add_entity(
         material=gs.materials.MPM.Liquid(),
         morph=gs.morphs.Box(
@@ -158,26 +186,29 @@ def main():
             vis_mode="particle"
         )
     )
-    print("building scene")
+    print("Particles added")
+    
+    print("Building scene...")
     scene.build()
-
-    print("loading model")
-    # Load model and run visualization
+    print("Scene built successfully")
+    
+    print("\nInitializing visualizer...")
     visualizer = DiffusionVisualizer(args.model_path)
+    print("Visualizer initialized")
     
-    # Create list to store frames
     frames = []
-    
-    # Run simulation and collect frames
+    print("\nStarting simulation...")
     run_sim(scene, visualizer, frames)
     
-    # Save animation
-    print("Saving animation...")
+    print("\nSaving animation...")
     imageio.mimsave('diffusion_visualization.gif', frames, fps=30)
+    print("Animation saved")
     
-    # Display the animation in Colab
+    print("\nDisplaying result...")
     with open('diffusion_visualization.gif', 'rb') as f:
         display.display(display.Image(data=f.read(), format='gif'))
+    print("Display complete")
 
 if __name__ == "__main__":
+    print("\n=== Script entry point ===")
     main()
