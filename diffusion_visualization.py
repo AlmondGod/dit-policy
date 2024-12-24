@@ -132,8 +132,10 @@ class DiffusionVisualizer:
             if not hasattr(self, 'enc_cache'):
                 self.enc_cache = self.noise_net.forward_enc(s_t)
             
-            # Predict noise and take diffusion step
-            batched_timestep = timestep.unsqueeze(0).repeat(B).to(self.device)
+            # Fix timestep batching - convert to scalar first
+            batched_timestep = timestep.item()  # Convert to scalar
+            batched_timestep = torch.tensor([batched_timestep] * B).to(self.device)  # Create batched version
+            
             noise_pred = self.noise_net.forward_dec(
                 noise_actions, batched_timestep, self.enc_cache
             )
