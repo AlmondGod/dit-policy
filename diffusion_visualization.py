@@ -157,64 +157,64 @@ def main():
     print(f"Arguments parsed: {args}", flush=True)
     
     print("\nInitializing virtual display...")
-    virtual_display = Display(visible=0, size=(800, 600))
-    virtual_display.start()
-    print("Virtual display started")
+    # virtual_display = Display(visible=0, size=(800, 600))
+    # virtual_display.start()
+    # print("Virtual display started")
     
-    print("\nInitializing Genesis...")
-    gs.init(backend=gs.cpu)
-    print("Genesis initialized")
+    # print("\nInitializing Genesis...")
+    # gs.init(backend=gs.cpu)
+    # print("Genesis initialized")
     
-    print("\nCreating scene...")
-    scene = gs.Scene(
-        sim_options=gs.options.SimOptions(dt=4e-3, substeps=10),
-        mpm_options=gs.options.MPMOptions(
-            lower_bound=(-1.0, -1.0, 0.0),
-            upper_bound=(1.0, 1.0, 1.0),
-        ),
-        viewer_options=gs.options.ViewerOptions(
-            camera_pos=(3.5, 0.0, 2.5),
-            camera_lookat=(0.0, 0.0, 0.5),
-            camera_fov=40,
-        ),
-        show_viewer=False
-    )
-    print("Scene created")
+    # print("\nCreating scene...")
+    # scene = gs.Scene(
+    #     sim_options=gs.options.SimOptions(dt=4e-3, substeps=10),
+    #     mpm_options=gs.options.MPMOptions(
+    #         lower_bound=(-1.0, -1.0, 0.0),
+    #         upper_bound=(1.0, 1.0, 1.0),
+    #     ),
+    #     viewer_options=gs.options.ViewerOptions(
+    #         camera_pos=(3.5, 0.0, 2.5),
+    #         camera_lookat=(0.0, 0.0, 0.5),
+    #         camera_fov=40,
+    #     ),
+    #     show_viewer=False
+    # )
+    # print("Scene created")
     
-    print("\nSetting up visualization...")
-    particles = scene.add_entity(
-        material=gs.materials.MPM.Liquid(),
-        morph=gs.morphs.Box(
-            pos=(0.0, 0.0, 0.5),
-            size=(0.1, 0.1, 0.1)
-        ),
-        surface=gs.surfaces.Default(
-            color=(0.4, 0.4, 1.0),
-            vis_mode="particle"
-        )
-    )
-    print("Particles added")
+    # print("\nSetting up visualization...")
+    # particles = scene.add_entity(
+    #     material=gs.materials.MPM.Liquid(),
+    #     morph=gs.morphs.Box(
+    #         pos=(0.0, 0.0, 0.5),
+    #         size=(0.1, 0.1, 0.1)
+    #     ),
+    #     surface=gs.surfaces.Default(
+    #         color=(0.4, 0.4, 1.0),
+    #         vis_mode="particle"
+    #     )
+    # )
+    # print("Particles added")
     
-    print("Building scene...")
-    scene.build()
-    print("Scene built successfully")
+    # print("Building scene...")
+    # scene.build()
+    # print("Scene built successfully")
     
-    print("\nInitializing visualizer...")
-    visualizer = DiffusionVisualizer(args.model_path)
-    print("Visualizer initialized")
+    # print("\nInitializing visualizer...")
+    # visualizer = DiffusionVisualizer(args.model_path)
+    # print("Visualizer initialized")
     
-    frames = []
-    print("\nStarting simulation...")
-    run_sim(scene, visualizer, frames)
+    # frames = []
+    # print("\nStarting simulation...")
+    # run_sim(scene, visualizer, frames)
     
-    print("\nSaving animation...")
-    imageio.mimsave('diffusion_visualization.gif', frames, fps=30)
-    print("Animation saved")
+    # print("\nSaving animation...")
+    # imageio.mimsave('diffusion_visualization.gif', frames, fps=30)
+    # print("Animation saved")
     
-    print("\nDisplaying result...")
-    with open('diffusion_visualization.gif', 'rb') as f:
-        display.display(display.Image(data=f.read(), format='gif'))
-    print("Display complete")
+    # print("\nDisplaying result...")
+    # with open('diffusion_visualization.gif', 'rb') as f:
+    #     display.display(display.Image(data=f.read(), format='gif'))
+    # print("Display complete")
 
 if __name__ == "__main__":
     print("\n=== Script entry point ===", flush=True)
