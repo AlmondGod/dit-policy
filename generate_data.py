@@ -2,6 +2,7 @@ import numpy as np
 import pickle as pkl
 import os
 from tqdm import tqdm
+from observations import DummyObs
 
 def generate_circular_trajectory(n_steps=100, radius=0.3, height=0.5):
     """Generate a circular trajectory in 3D space with rotation"""
@@ -32,12 +33,11 @@ def create_synthetic_dataset(n_trajectories=1000, n_steps=100, out_path='data/sy
         
         # Create trajectory
         traj = []
+        prev_obs = None
         for t in range(n_steps):
-            # Create dummy state and image
-            obs = {
-                'state': np.zeros(7, dtype=np.float32),  # dummy robot state
-                'enc_cam_0': np.zeros((256, 256, 3), dtype=np.uint8)  # dummy encoded image
-            }
+            # Create observation with proper image format
+            obs = DummyObs()
+            obs.prev = prev_obs  # Link to previous observation
             
             # Get current action
             action = actions[t].astype(np.float32)
@@ -46,6 +46,7 @@ def create_synthetic_dataset(n_trajectories=1000, n_steps=100, out_path='data/sy
             reward = 0.0
             
             traj.append((obs, action, reward))
+            prev_obs = obs
         
         out_buffer.append(traj)
     
@@ -57,7 +58,7 @@ def create_synthetic_dataset(n_trajectories=1000, n_steps=100, out_path='data/sy
 if __name__ == "__main__":
     # Generate dataset
     create_synthetic_dataset(
-        n_trajectories=1,  # number of trajectories
-        n_steps=100,         # steps per trajectory
+        n_trajectories=70,  # number of trajectories
+        n_steps=10,         # steps per trajectory
         out_path='data/synthetic_circular'
     )

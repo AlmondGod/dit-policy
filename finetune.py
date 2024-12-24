@@ -14,6 +14,7 @@ from omegaconf import DictConfig, OmegaConf
 
 import hydra
 from data4robotics import misc, transforms
+from observations import DummyObs, DummyImage
 
 base_path = os.path.dirname(os.path.abspath(__file__))
 
