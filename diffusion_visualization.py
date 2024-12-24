@@ -160,6 +160,7 @@ def run_sim(scene, visualizer, frames, particles):
     
     # Get number of particles from the entity
     n_particles = particles._n_particles
+    print(f"Number of particles: {n_particles}")
     
     t_prev = time()
     for timestep in visualizer.diffusion_schedule.timesteps:
@@ -169,13 +170,22 @@ def run_sim(scene, visualizer, frames, particles):
         noise_actions = visualizer.run_diffusion_step({}, noise_actions, timestep)
         
         # Get positions from noise actions and reshape for particles
-        action = noise_actions.detach().cpu().numpy()[0]  # [6]
-        xyz_position = action[:3]  # Take only the XYZ coordinates
+        action = noise_actions.detach().cpu().numpy()  # [1, 6]
+        print(f"Action shape: {action.shape}")
+        
+        # Take only the XYZ coordinates from first batch element
+        xyz_position = action[0, :3]  # Take only the XYZ coordinates from first batch
+        print(f"XYZ position shape: {xyz_position.shape}")
         
         # Create particle positions by repeating the XYZ position
         positions = np.tile(xyz_position, (n_particles, 1))  # [n_particles, 3]
+        print(f"Positions shape after tile: {positions.shape}")
+        
         noise = np.random.normal(0, 0.05, (n_particles, 3))  # Small noise for visualization
+        print(f"Noise shape: {noise.shape}")
+        
         positions = positions + noise
+        print(f"Final positions shape: {positions.shape}")
         
         # Update particle positions
         particles.set_position(positions)
