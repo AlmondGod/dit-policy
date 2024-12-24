@@ -14,6 +14,7 @@ from IPython import display
 from data4robotics.models.diffusion import DiffusionTransformerAgent
 from observations import DummyObs
 from data4robotics.models.resnet import ResNet
+from time import time, sleep
     
 
 class DiffusionVisualizer:
