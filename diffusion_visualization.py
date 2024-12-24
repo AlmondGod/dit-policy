@@ -115,7 +115,9 @@ class DiffusionVisualizer:
             states = obs.state[None, None]  # Add batch and time dimensions
             
             # Convert to tensors and move to device - add .copy() to fix negative strides
+            # Permute dimensions to get (B, T, C, H, W) format
             images = torch.from_numpy(raw_image.copy()).float().to(self.device) / 255.0
+            images = images.permute(0, 1, 4, 2, 3)  # From (B,T,H,W,C) to (B,T,C,H,W)
             states = torch.from_numpy(states.copy()).float().to(self.device)
             
             # Format images as dictionary with camera keys
