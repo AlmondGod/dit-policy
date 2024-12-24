@@ -202,6 +202,8 @@ def run_sim(scene, visualizer, frames, particles):
         t_prev = t_now
         sleep(0.0005)
 
+        break
+
     if scene.viewer is not None:
         scene.viewer.stop()
 
