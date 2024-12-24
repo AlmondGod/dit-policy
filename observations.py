@@ -1,3 +1,4 @@
+# observation.py
 import numpy as np
 
 class DummyImage:
@@ -17,6 +18,17 @@ class DummyObs:
         self.state = np.zeros(7, dtype=np.float32)
         self._image = DummyImage()
         self.prev = None
+        self._dict = {}  # Internal dictionary to support dict-like behavior
     
     def image(self, cam_idx):
         return self._image.image(cam_idx)
+    
+    # Add dictionary-like interface
+    def keys(self):
+        return self._dict.keys()
+    
+    def __getitem__(self, key):
+        return self._dict[key]
+    
+    def __setitem__(self, key, value):
+        self._dict[key] = value
