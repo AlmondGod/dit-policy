@@ -135,9 +135,11 @@ class DiffusionVisualizer:
             if not hasattr(self, 'enc_cache'):
                 self.enc_cache = self.noise_net.forward_enc(s_t)
             
-            # Fix timestep batching - convert to scalar first
-            batched_timestep = timestep.item()  # Convert to scalar
-            batched_timestep = torch.tensor([batched_timestep] * B).to(self.device)  # Create batched version
+            # Handle both tensor and integer timesteps
+            if isinstance(timestep, int):
+                batched_timestep = torch.tensor([timestep] * B).to(self.device)
+            else:
+                batched_timestep = torch.tensor([timestep.item()] * B).to(self.device)
             
             noise_pred = self.noise_net.forward_dec(
                 noise_actions, batched_timestep, self.enc_cache
@@ -145,7 +147,7 @@ class DiffusionVisualizer:
             
             noise_actions = self.diffusion_schedule.step(
                 model_output=noise_pred,
-                timestep=timestep,
+                timestep=timestep if isinstance(timestep, torch.Tensor) else torch.tensor(timestep),
                 sample=noise_actions
             ).prev_sample
             
