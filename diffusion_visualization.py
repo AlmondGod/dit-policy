@@ -158,8 +158,11 @@ def run_sim(scene, visualizer, frames):
     # Initialize noise actions
     noise_actions = torch.randn(1, 6).to(visualizer.device)  # [batch_size, action_dim]
     
+    # Get the entities we created
+    target_particles = scene.entities[0]  # Red particles
+    noise_particles = scene.entities[1]   # Blue particles
+    
     t_prev = time()
-    # Use the timesteps from the schedule
     for timestep in visualizer.diffusion_schedule.timesteps:
         print(f"running diffusion step {timestep}")
         
@@ -169,8 +172,11 @@ def run_sim(scene, visualizer, frames):
         # Get positions from noise actions
         positions = noise_actions.detach().cpu().numpy()[0]  # [action_dim]
         
-        # Update particle positions in scene
-        scene.particle_state.x[...] = positions[:3]  # Update positions
+        # Update particle positions
+        target_particles.morph.pos = positions[:3]  # Update target particle positions
+        noise_particles.morph.pos = positions[3:]   # Update noise particle positions
+        
+        # Step simulation
         scene.step()
         
         print(f"rendering frame {timestep}", flush=True)
