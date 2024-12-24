@@ -88,7 +88,7 @@ def run_sim(scene, visualizer, frames):
     for t, timestep in enumerate(visualizer.diffusion_schedule.timesteps):
 
         print(f"running diffusion step {t}")
-        
+
         # Run diffusion step
         noise_actions = visualizer.run_diffusion_step({}, noise_actions, timestep)
         
@@ -113,17 +113,23 @@ def run_sim(scene, visualizer, frames):
         sleep(0.0005)
 
 def main():
+
+    print("starting main")
+
     parser = argparse.ArgumentParser()
     parser.add_argument("-m", "--model_path", required=True, help="Path to model checkpoint")
     args = parser.parse_args()
 
+    print("starting virtual display")
     # Start virtual display for headless rendering
     virtual_display = Display(visible=0, size=(800, 600))
     virtual_display.start()
 
+    print("starting genesis")
     # Initialize Genesis
     gs.init(backend=gs.cpu)
 
+    print("creating scene")
     # Create scene with appropriate camera settings
     scene = gs.Scene(
         sim_options=gs.options.SimOptions(dt=4e-3, substeps=10),
@@ -139,6 +145,7 @@ def main():
         show_viewer=False  # Headless mode
     )
 
+    print("adding particles")
     # Initialize particles for visualization
     particles = scene.add_entity(
         material=gs.materials.MPM.Liquid(),
@@ -151,9 +158,10 @@ def main():
             vis_mode="particle"
         )
     )
-
+    print("building scene")
     scene.build()
 
+    print("loading model")
     # Load model and run visualization
     visualizer = DiffusionVisualizer(args.model_path)
     
