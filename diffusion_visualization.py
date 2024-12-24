@@ -147,36 +147,28 @@ class DiffusionVisualizer:
             return noise_actions
 
 def run_sim(scene, visualizer, frames):
-    n_steps = visualizer.model._train_diffusion_steps
+    """Run simulation with visualization"""
+    print("Starting simulation...")
     
-    # Initialize noise
-    B = 1  # batch size
-    noise_actions = torch.randn(
-        B, visualizer.model.ac_chunk, visualizer.model.ac_dim, 
-        device=visualizer.device
-    )
+    # Initialize noise actions
+    noise_actions = torch.randn(1, 6).to(visualizer.device)  # [batch_size, action_dim]
     
-    # Setup diffusion schedule
-    visualizer.diffusion_schedule.set_timesteps(n_steps)
-    visualizer.diffusion_schedule.alphas_cumprod = (
-        visualizer.diffusion_schedule.alphas_cumprod.to(visualizer.device)
-    )
+    # Number of diffusion steps (typically defined in the model)
+    num_diffusion_steps = 1000  # This should match the model's training configuration
     
     t_prev = time()
-    for t, timestep in enumerate(visualizer.diffusion_schedule.timesteps):
-
-        print(f"running diffusion step {t}", flush=True)
-
+    for t in range(num_diffusion_steps-1, -1, -1):  # Start from T-1, go to 0
+        print(f"running diffusion step {t}")
+        
         # Run diffusion step
+        timestep = torch.tensor([t]).long()
         noise_actions = visualizer.run_diffusion_step({}, noise_actions, timestep)
         
-        # Convert actions to particle positions (xyz only)
-        positions = noise_actions[0].detach().cpu().numpy()  # [T, 3]
-
-        print(f"getting positions {positions}", flush=True)
+        # Get positions from noise actions
+        positions = noise_actions.detach().cpu().numpy()[0]  # [action_dim]
         
-        # Update particle positions in simulator
-        scene.update_particle_positions(positions)
+        # Update particle positions in scene
+        scene.particle_state.x[...] = positions[:3]  # Update positions
         scene.step()
         
         print(f"rendering frame {t}", flush=True)
@@ -186,9 +178,12 @@ def run_sim(scene, visualizer, frames):
         
         # FPS tracking
         t_now = time()
-        print(f"Step {t}/{n_steps}, {1/(t_now - t_prev):.1f} FPS", flush=True)
+        print(1 / (t_now - t_prev), "FPS")
         t_prev = t_now
-        sleep(0.0005)
+        sleep(0.0005)  # Small delay to control simulation speed
+
+    if scene.viewer is not None:
+        scene.viewer.stop()
 
 def main():
     print("\n=== Starting main() ===", flush=True)
