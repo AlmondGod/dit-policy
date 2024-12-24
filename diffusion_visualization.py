@@ -116,17 +116,17 @@ class DiffusionVisualizer:
             
             # Add batch and time dimensions and convert to tensors
             images = torch.from_numpy(raw_image.copy()).float().to(self.device) / 255.0  # [H, W, C]
-            images = images.permute(2, 0, 1).unsqueeze(0).unsqueeze(0)  # [1, 1, C, H, W]
+            images = images.permute(2, 0, 1)  # [C, H, W]
+            images = images.unsqueeze(0)  # [1, C, H, W]
             
             states = torch.from_numpy(states.copy()).float().to(self.device)
-            states = states.unsqueeze(0).unsqueeze(0)  # [1, 1, state_dim]
+            states = states.unsqueeze(0)  # [1, state_dim]
             
             # Format images as dictionary with camera keys
             image_dict = {"cam0": images}  # Model expects dict with camera keys
             
             B = noise_actions.shape[0]
             s_t = self.model.tokenize_obs(image_dict, states)
-            
             
             # For transformer model, we need encoder cache
             if not hasattr(self, 'enc_cache'):
