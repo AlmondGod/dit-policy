@@ -163,7 +163,8 @@ def run_sim(scene, visualizer, frames, cam, particles):
     print(f"Number of particles: {n_particles}")
     
     t_prev = time()
-    for timestep in visualizer.diffusion_schedule.timesteps:
+    # for timestep in visualizer.diffusion_schedule.timesteps:
+    for timestep in range(4):
         print(f"running diffusion step {timestep}")
         
         # Run diffusion step
@@ -209,8 +210,6 @@ def run_sim(scene, visualizer, frames, cam, particles):
         print(1 / (t_now - t_prev), "FPS")
         t_prev = t_now
         sleep(0.0005)
-
-        break
 
     if scene.viewer is not None:
         scene.viewer.stop()
