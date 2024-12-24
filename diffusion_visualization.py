@@ -111,14 +111,15 @@ class DiffusionVisualizer:
         with torch.no_grad():
             # Create proper observation format
             obs = DummyObs()
-            raw_image = obs.image(0)[None, None]  # Add batch and time dimensions
-            states = obs.state[None, None]  # Add batch and time dimensions
+            raw_image = obs.image(0)  # [H, W, C]
+            states = obs.state  # [state_dim]
             
-            # Convert to tensors and move to device - add .copy() to fix negative strides
-            # Permute dimensions to get (B, T, C, H, W) format
-            images = torch.from_numpy(raw_image.copy()).float().to(self.device) / 255.0
-            images = images.permute(0, 1, 4, 2, 3)  # From (B,T,H,W,C) to (B,T,C,H,W)
+            # Add batch and time dimensions and convert to tensors
+            images = torch.from_numpy(raw_image.copy()).float().to(self.device) / 255.0  # [H, W, C]
+            images = images.permute(2, 0, 1).unsqueeze(0).unsqueeze(0)  # [1, 1, C, H, W]
+            
             states = torch.from_numpy(states.copy()).float().to(self.device)
+            states = states.unsqueeze(0).unsqueeze(0)  # [1, 1, state_dim]
             
             # Format images as dictionary with camera keys
             image_dict = {"cam0": images}  # Model expects dict with camera keys
