@@ -86,16 +86,22 @@ def run_sim(scene, visualizer, frames):
     
     t_prev = time()
     for t, timestep in enumerate(visualizer.diffusion_schedule.timesteps):
+
+        print(f"running diffusion step {t}")
+        
         # Run diffusion step
         noise_actions = visualizer.run_diffusion_step({}, noise_actions, timestep)
         
         # Convert actions to particle positions (xyz only)
         positions = noise_actions[0].detach().cpu().numpy()  # [T, 3]
+
+        print(f"getting positions {positions}")
         
         # Update particle positions in simulator
         scene.update_particle_positions(positions)
         scene.step()
         
+        print(f"rendering frame {t}")
         # Capture frame
         frame = scene.render()
         frames.append(frame)
