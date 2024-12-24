@@ -5,6 +5,8 @@ import numpy as np
 import torch
 import imageio
 import sys
+import os
+os.environ['PYTHONUNBUFFERED'] = '1'
 sys.stdout.flush()
 
 from IPython.display import clear_output
