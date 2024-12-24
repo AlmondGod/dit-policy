@@ -180,8 +180,4 @@ def main():
         display.display(display.Image(data=f.read(), format='gif'))
 
 if __name__ == "__main__":
-    # Install required packages
-    import os
-    os.system('apt-get install -y xvfb python-opengl')
-    os.system('pip install pyvirtualdisplay imageio')
     main()
