@@ -151,7 +151,7 @@ class DiffusionVisualizer:
             
             return noise_actions
 
-def run_sim(scene, visualizer, frames, particles):
+def run_sim(scene, visualizer, frames, cam, particles):
     """Run simulation with visualization"""
     print("Starting simulation...")
     
@@ -192,6 +192,14 @@ def run_sim(scene, visualizer, frames, particles):
         
         # Step simulation
         scene.step()
+
+        rgb, depth, segmentation, normal = cam.render(
+            rgb=True, 
+            depth=True, 
+            segmentation=True, 
+            normal=True
+        )
+        frames.append(rgb)
         
         print(f"rendering frame {timestep}", flush=True)
         # frame = scene.render()
@@ -245,22 +253,37 @@ def main():
         )
     )
     
+    cam = scene.add_camera(
+        res=(640, 480),
+        pos=(3.5, 0.0, 2.5),
+        lookat=(0, 0, 0.5),
+        fov=30,
+        GUI=True,
+    )
+    
     scene.build()
+    
+    # render rgb, depth, segmentation, normal
+    rgb, depth, segmentation, normal = cam.render(rgb=True, depth=True, segmentation=True, normal=True)
+    
+    cam.start_recording()
     
     visualizer = DiffusionVisualizer(args.model_path)
     
     frames = []
     print("\nStarting simulation...")
-    run_sim(scene, visualizer, frames, particles)
+    run_sim(scene, visualizer, frames, cam, particles)
+
+    cam.stop_recording(save_to_filename="diffusion_visualization.mp4")
     
-    print("\nSaving animation...")
-    imageio.mimsave('diffusion_visualization.gif', frames, fps=30)
-    print("Animation saved")
+    # print("\nSaving animation...")
+    # imageio.mimsave('diffusion_visualization.gif', frames, fps=30)
+    # print("Animation saved")
     
-    print("\nDisplaying result...")
-    with open('diffusion_visualization.gif', 'rb') as f:
-        display.display(display.Image(data=f.read(), format='gif'))
-    print("Display complete")
+    # print("\nDisplaying result...")
+    # with open('diffusion_visualization.gif', 'rb') as f:
+    #     display.display(display.Image(data=f.read(), format='gif'))
+    # print("Display complete")
 
 if __name__ == "__main__":
     main()
