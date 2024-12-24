@@ -114,9 +114,9 @@ class DiffusionVisualizer:
             images = obs.image(0)[None, None]  # Add batch and time dimensions
             states = obs.state[None, None]  # Add batch and time dimensions
             
-            # Convert to tensors and move to device
-            images = torch.from_numpy(images).float().to(self.device) / 255.0
-            states = torch.from_numpy(states).float().to(self.device)
+            # Convert to tensors and move to device - add .copy() to fix negative strides
+            images = torch.from_numpy(images.copy()).float().to(self.device) / 255.0
+            states = torch.from_numpy(states.copy()).float().to(self.device)
             
             B = noise_actions.shape[0]
             s_t = self.model.tokenize_obs(images, states)
