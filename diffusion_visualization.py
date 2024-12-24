@@ -29,8 +29,10 @@ class DiffusionVisualizer:
             # First create a base ResNet18 model
             import torchvision.models as models
             resnet = models.resnet18()
-            # Load the pretrained weights
+            # Load the pretrained weights - handle potential nested state dict
             resnet_state_dict = torch.load('/content/IN_1M_resnet18.pth', map_location=device)
+            if 'model' in resnet_state_dict:
+                resnet_state_dict = resnet_state_dict['model']
             resnet.load_state_dict(resnet_state_dict)
             print("ResNet18 loaded successfully")
             
