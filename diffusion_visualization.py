@@ -170,11 +170,11 @@ def run_sim(scene, visualizer, frames, particles):
         noise_actions = visualizer.run_diffusion_step({}, noise_actions, timestep)
         
         # Get positions from noise actions and reshape for particles
-        action = noise_actions.detach().cpu().numpy()  # [1, 6]
+        action = noise_actions.detach().cpu().numpy()  # [512, 100, 6]
         print(f"Action shape: {action.shape}")
         
-        # Take only the XYZ coordinates from first batch element
-        xyz_position = action[0, :3]  # Take only the XYZ coordinates from first batch
+        # Take only the first batch and timestep, and first 3 coordinates
+        xyz_position = action[0, 0, :3]  # Take XYZ from first batch and timestep
         print(f"XYZ position shape: {xyz_position.shape}")
         
         # Create particle positions by repeating the XYZ position
