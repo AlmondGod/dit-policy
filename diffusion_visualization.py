@@ -32,7 +32,6 @@ except Exception as e:
 try:
     print("Importing custom modules...", flush=True)
     from data4robotics.models.diffusion import DiffusionTransformerAgent
-    from data4robotics import load_resnet18
     from observations import DummyObs
     print("Custom modules imported successfully", flush=True)
 except Exception as e:
@@ -40,15 +39,9 @@ except Exception as e:
     raise
 
 class DiffusionVisualizer:
-    def __init__(self, model_path, device='cpu'):  # Changed default to CPU
+    def __init__(self, model_path, device='cpu'):
         print(f"Initializing DiffusionVisualizer with device: {device}", flush=True)
         try:
-            print("Loading vision model...", flush=True)
-            self.transform, self.vision_model = load_resnet18()
-            self.vision_model.to(device)
-            self.vision_model.eval()
-            print("Vision model loaded successfully", flush=True)
-            
             print("Loading checkpoint...", flush=True)
             self.device = torch.device(device)
             checkpoint = torch.load(model_path, map_location=device)
@@ -56,12 +49,16 @@ class DiffusionVisualizer:
             
             print("Initializing diffusion model...", flush=True)
             model_kwargs = checkpoint['model_kwargs']
-            model_kwargs['features'] = self.vision_model
+            # The vision model is already included in the checkpoint
             self.model = DiffusionTransformerAgent(**model_kwargs)
             self.model.load_state_dict(checkpoint['state_dict'])
             self.model.to(device)
             self.model.eval()
             print("Diffusion model initialized successfully", flush=True)
+            
+            # Get the vision model from the loaded model
+            self.vision_model = self.model.features
+            self.vision_model.eval()
             
             self.model._eval_diffusion_steps = 100
             self.diffusion_schedule = self.model.diffusion_schedule
