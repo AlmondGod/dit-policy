@@ -40,24 +40,23 @@ except Exception as e:
 
 class DiffusionVisualizer:
     def __init__(self, model_path, device='cpu'):
-        print(f"Initializing DiffusionVisualizer with device: {device}", flush=True)
+        print(f"Initializing DiffusionVisualizer with device: {device}")
         try:
-            print("Loading checkpoint...", flush=True)
+            print("Loading checkpoint...")
             self.device = torch.device(device)
             checkpoint = torch.load(model_path, map_location=device)
-            print("Checkpoint loaded successfully", flush=True)
+            print("Checkpoint loaded successfully")
+            print("Available keys in checkpoint:", list(checkpoint.keys()))
             
-            # Debug: Print checkpoint keys
-            print("Available keys in checkpoint:", list(checkpoint.keys()), flush=True)
+            print("Initializing diffusion model...")
+            # Get the model configuration from the saved model
+            saved_model = checkpoint['model']
             
-            print("Initializing diffusion model...", flush=True)
-            model_kwargs = checkpoint['model_kwargs']
-            # The vision model is already included in the checkpoint
-            self.model = DiffusionTransformerAgent(**model_kwargs)
-            self.model.load_state_dict(checkpoint['state_dict'])
+            # The model itself should contain its configuration
+            self.model = saved_model  # Use the loaded model directly
             self.model.to(device)
             self.model.eval()
-            print("Diffusion model initialized successfully", flush=True)
+            print("Diffusion model initialized successfully")
             
             # Get the vision model from the loaded model
             self.vision_model = self.model.features
@@ -66,8 +65,12 @@ class DiffusionVisualizer:
             self.model._eval_diffusion_steps = 100
             self.diffusion_schedule = self.model.diffusion_schedule
             self.noise_net = self.model.noise_net
+            
         except Exception as e:
-            print("Error in DiffusionVisualizer initialization:", e, flush=True)
+            print("Error in DiffusionVisualizer initialization:", e)
+            print("Exception type:", type(e))
+            import traceback
+            traceback.print_exc()
             raise
 
     def run_diffusion_step(self, obs_dict, noise_actions, timestep):
