@@ -1,42 +1,19 @@
-print("Script starting - top level", flush=True)
-
 import argparse
 import numpy as np
 import torch
 import imageio
 import sys
 import os
-os.environ['PYTHONUNBUFFERED'] = '1'
-sys.stdout.flush()
 
 from IPython.display import clear_output
 clear_output(wait=True)
 
-try:
-    print("Importing genesis...", flush=True)
-    import genesis as gs
-    print("Genesis imported successfully", flush=True)
-except Exception as e:
-    print("Failed to import genesis:", e, flush=True)
-    raise
-
-try:
-    print("Importing display modules...", flush=True)
-    from pyvirtualdisplay import Display
-    from IPython import display
-    print("Display modules imported successfully", flush=True)
-except Exception as e:
-    print("Failed to import display modules:", e, flush=True)
-    raise
-
-try:
-    print("Importing custom modules...", flush=True)
-    from data4robotics.models.diffusion import DiffusionTransformerAgent
-    from observations import DummyObs
-    print("Custom modules imported successfully", flush=True)
-except Exception as e:
-    print("Failed to import custom modules:", e, flush=True)
-    raise
+import genesis as gs
+from pyvirtualdisplay import Display
+from IPython import display
+from data4robotics.models.diffusion import DiffusionTransformerAgent
+from observations import DummyObs
+    
 
 class DiffusionVisualizer:
     def __init__(self, model_path, device='cpu'):
@@ -48,12 +25,24 @@ class DiffusionVisualizer:
             print("Checkpoint loaded successfully")
             print("Available keys in checkpoint:", list(checkpoint.keys()))
             
-            print("Initializing diffusion model...")
-            # Get the model configuration from the saved model
-            saved_model = checkpoint['model']
+            print("Loading state dict keys:", checkpoint['model'].keys())
             
-            # The model itself should contain its configuration
-            self.model = saved_model  # Use the loaded model directly
+            print("Initializing diffusion model...")
+            # Create a new model instance with default parameters
+            self.model = DiffusionTransformerAgent(
+                ac_dim=3,  # XYZ coordinates
+                ac_chunk=100,  # From your finetune.py command
+                obs_dim=512,  # ResNet feature dimension
+                horizon=100,  # Same as ac_chunk
+                n_obs_steps=1,  # Single observation
+                n_action_steps=100,  # Same as ac_chunk
+                n_latency_steps=0,  # No latency
+                n_diffusion_steps=100,  # Default diffusion steps
+                feature_dim=512,  # ResNet feature dimension
+            )
+            
+            # Load the state dictionary
+            self.model.load_state_dict(checkpoint['model'])
             self.model.to(device)
             self.model.eval()
             print("Diffusion model initialized successfully")
@@ -153,22 +142,15 @@ def run_sim(scene, visualizer, frames):
 def main():
     print("\n=== Starting main() ===", flush=True)
     
-    print("Parsing arguments...", flush=True)
     parser = argparse.ArgumentParser()
     parser.add_argument("-m", "--model_path", required=True)
     args = parser.parse_args()
-    print(f"Arguments parsed: {args}", flush=True)
     
-    print("\nInitializing virtual display...")
     virtual_display = Display(visible=0, size=(800, 600))
     virtual_display.start()
-    print("Virtual display started")
     
-    print("\nInitializing Genesis...")
     gs.init(backend=gs.cpu)
-    print("Genesis initialized")
     
-    print("\nCreating scene...")
     scene = gs.Scene(
         sim_options=gs.options.SimOptions(dt=4e-3, substeps=10),
         mpm_options=gs.options.MPMOptions(
@@ -182,9 +164,7 @@ def main():
         ),
         show_viewer=False
     )
-    print("Scene created")
     
-    print("\nSetting up visualization...")
     particles = scene.add_entity(
         material=gs.materials.MPM.Liquid(),
         morph=gs.morphs.Box(
@@ -196,15 +176,10 @@ def main():
             vis_mode="particle"
         )
     )
-    print("Particles added")
     
-    print("Building scene...")
     scene.build()
-    print("Scene built successfully")
     
-    print("\nInitializing visualizer...")
     visualizer = DiffusionVisualizer(args.model_path)
-    print("Visualizer initialized")
     
     # frames = []
     # print("\nStarting simulation...")
@@ -220,5 +195,4 @@ def main():
     # print("Display complete")
 
 if __name__ == "__main__":
-    print("\n=== Script entry point ===", flush=True)
     main()
