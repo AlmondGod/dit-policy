@@ -170,10 +170,10 @@ def run_sim(scene, visualizer, frames, particles):
         
         # Get positions from noise actions and reshape for particles
         action = noise_actions.detach().cpu().numpy()[0]  # [6]
+        xyz_position = action[:3]  # Take only the XYZ coordinates
         
-        # Create particle positions by repeating the action for each particle
-        # and adding some noise to create a cloud around the point
-        positions = np.tile(action[:3], (n_particles, 1))  # [n_particles, 3]
+        # Create particle positions by repeating the XYZ position
+        positions = np.tile(xyz_position, (n_particles, 1))  # [n_particles, 3]
         noise = np.random.normal(0, 0.05, (n_particles, 3))  # Small noise for visualization
         positions = positions + noise
         
