@@ -13,6 +13,7 @@ from pyvirtualdisplay import Display
 from IPython import display
 from data4robotics.models.diffusion import DiffusionTransformerAgent
 from observations import DummyObs
+from data4robotics.models.resnet import ResNet
     
 
 class DiffusionVisualizer:
@@ -26,12 +27,13 @@ class DiffusionVisualizer:
             print("Available keys in checkpoint:", list(checkpoint.keys()))
             
             print("Loading ResNet18...")
-            # Create a pretrained ResNet18
-            import torchvision.models as models
-            resnet = models.resnet18(pretrained=True)  # Use pretrained model
-            
-            # Add embed_dim attribute - ResNet18's final feature dimension is 512
-            resnet.embed_dim = 512
+            # Create custom ResNet with GroupNorm
+            resnet = ResNet(
+                size=18,
+                norm_cfg={"name": "group_norm", "num_groups": 32},
+                weights="IMAGENET1K_V1",
+                avg_pool=False  # Following resnet_gn_nopool config
+            )
             
             # Load your custom weights with strict=False
             resnet_state_dict = torch.load('/content/IN_1M_resnet18.pth', map_location=device)
