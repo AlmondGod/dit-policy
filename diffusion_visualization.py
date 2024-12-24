@@ -32,7 +32,7 @@ class DiffusionVisualizer:
             self.model = DiffusionTransformerAgent(
                 ac_dim=6,  # XYZ coordinates
                 ac_chunk=100,  # From your finetune.py command
-                obs_dim=7,  # obs dim
+                o_dim=7,  # obs dim
                 horizon=100,  # Same as ac_chunk
                 n_obs_steps=1,  # Single observation
                 n_action_steps=100,  # Same as ac_chunk
