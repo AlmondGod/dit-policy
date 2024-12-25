@@ -166,7 +166,7 @@ def run_sim(scene, visualizer, frames, cam, particles):
     
     t_prev = time()
     # for timestep in visualizer.diffusion_schedule.timesteps:
-    for timestep in range(4):
+    for timestep in range(20):
         print(f"running diffusion step {timestep}")
         
         # Run diffusion step
@@ -245,7 +245,7 @@ def main():
     particles = scene.add_entity(
         material=gs.materials.MPM.Liquid(),
         morph=gs.morphs.Box(
-            pos=(0.0, 0.0, 0.5),
+            pos=(0.0, 0.0, 0.0),
             size=(0.1, 0.1, 0.1)
         ),
         surface=gs.surfaces.Default(
@@ -256,8 +256,8 @@ def main():
     
     cam = scene.add_camera(
         res=(640, 480),
-        pos=(3.5, 0.0, 2.5),
-        lookat=(0, 0, 0.5),
+        pos=(0.0, 0.0, 2),
+        lookat=(0, 0, 0),
         fov=30,
         GUI=True,
     )
@@ -275,7 +275,7 @@ def main():
     print("\nStarting simulation...")
     run_sim(scene, visualizer, frames, cam, particles)
 
-    cam.stop_recording(save_to_filename="diffusion_visualization.mp4")
+    cam.stop_recording(save_to_filename="diffusion_visualization.mov")
     
     # print("\nSaving animation...")
     # imageio.mimsave('diffusion_visualization.gif', frames, fps=30)
