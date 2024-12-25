@@ -154,45 +154,29 @@ class DiffusionVisualizer:
             return noise_actions
 
 def run_sim(scene, visualizer, frames, cam, particles):
-    """Run simulation with visualization using batched diffusion steps"""
+    """Run simulation with visualization"""
     print("Starting simulation...")
     
-    # Number of steps to process in parallel
-    batch_size = 1  # Adjust based on your GPU memory
-    n_steps = 1
-    
-    # Initialize noise actions for all timesteps
-    noise_actions = torch.randn(batch_size, 6).to(visualizer.device)
+    # Single noise action
+    noise_actions = torch.randn(1, 6).to(visualizer.device)
+    n_steps = 2  # Total number of steps
     
     n_particles = particles._n_particles
     print(f"Number of particles: {n_particles}")
     
     t_prev = time()
     
-    # Process timesteps in batches
-    for batch_start in range(0, n_steps, batch_size):
-        batch_end = min(batch_start + batch_size, n_steps)
-        current_batch_size = batch_end - batch_start
-        
-        print(f"Processing timesteps {batch_start} to {batch_end-1}")
-        
-        # Get all actions for this batch at once
-        batch_actions = []
-        current_noise = noise_actions[:current_batch_size]
+    # Process one timestep at a time
+    for timestep in range(n_steps):
+        print(f"Processing timestep {timestep}")
         
         with torch.no_grad():
-            for t in range(batch_start, batch_end):
-                current_noise = visualizer.run_diffusion_step({}, current_noise, t)
-                batch_actions.append(current_noise.detach().cpu())
-        
-        # Process each timestep's actions
-        for t_idx, actions in enumerate(batch_actions):
-            timestep = batch_start + t_idx
-            print(f"Visualizing step {timestep}")
+            # Run single diffusion step
+            noise_actions = visualizer.run_diffusion_step({}, noise_actions, timestep)
             
             # Get positions from noise actions
-            action = actions.numpy()  # [1, 6]
-            xyz_position = action[0, :3]  # Take XYZ coordinates
+            action = noise_actions.cpu().numpy()[0]  # [6]
+            xyz_position = action[:3]  # Take XYZ coordinates
             
             # Create particle positions
             positions = np.tile(xyz_position, (n_particles, 1))
