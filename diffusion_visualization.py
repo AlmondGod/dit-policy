@@ -207,9 +207,6 @@ def main():
     
     print("torch.cuda.is_available()", torch.cuda.is_available())
     gs.init(backend=gs.gpu)
-
-    #terminate
-    quit()
     
     scene = gs.Scene(
         sim_options=gs.options.SimOptions(dt=4e-3, substeps=10),
@@ -251,6 +248,9 @@ def main():
     )
     
     scene.build()
+
+    #terminate
+    quit()
     
     # render rgb, depth, segmentation, normal
     rgb, depth, segmentation, normal = cam.render(rgb=True, depth=True, segmentation=True, normal=True)
