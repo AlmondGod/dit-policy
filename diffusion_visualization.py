@@ -154,64 +154,59 @@ class DiffusionVisualizer:
             return noise_actions
 
 def run_sim(scene, visualizer, frames, cam, particles):
-    """Run simulation with visualization"""
+    """Run simulation with visualization using batched diffusion steps"""
     print("Starting simulation...")
     
-    # Initialize noise actions
-    noise_actions = torch.randn(1, 6).to(visualizer.device)  # [batch_size, action_dim]
+    # Number of steps to process in parallel
+    batch_size = 10  # Adjust based on your GPU memory
+    n_steps = 20
     
-    # Get number of particles from the entity
+    # Initialize noise actions for all timesteps
+    noise_actions = torch.randn(batch_size, 6).to(visualizer.device)
+    
     n_particles = particles._n_particles
     print(f"Number of particles: {n_particles}")
     
     t_prev = time()
-    # for timestep in visualizer.diffusion_schedule.timesteps:
-    for timestep in range(20):
-        print(f"running diffusion step {timestep}")
+    
+    # Process timesteps in batches
+    for batch_start in range(0, n_steps, batch_size):
+        batch_end = min(batch_start + batch_size, n_steps)
+        current_batch_size = batch_end - batch_start
         
-        # Run diffusion step
-        noise_actions = visualizer.run_diffusion_step({}, noise_actions, timestep)
+        print(f"Processing timesteps {batch_start} to {batch_end-1}")
         
-        # Get positions from noise actions and reshape for particles
-        action = noise_actions.detach().cpu().numpy()  # [512, 100, 6]
-        print(f"Action shape: {action.shape}")
+        # Get all actions for this batch at once
+        batch_actions = []
+        current_noise = noise_actions[:current_batch_size]
         
-        # Take only the first batch and timestep, and first 3 coordinates
-        xyz_position = action[0, 0, :3]  # Take XYZ from first batch and timestep
-        print(f"XYZ position shape: {xyz_position.shape}")
+        with torch.no_grad():
+            for t in range(batch_start, batch_end):
+                current_noise = visualizer.run_diffusion_step({}, current_noise, t)
+                batch_actions.append(current_noise.detach().cpu())
         
-        # Create particle positions by repeating the XYZ position
-        positions = np.tile(xyz_position, (n_particles, 1))  # [n_particles, 3]
-        print(f"Positions shape after tile: {positions.shape}")
-        
-        noise = np.random.normal(0, 0.05, (n_particles, 3))  # Small noise for visualization
-        print(f"Noise shape: {noise.shape}")
-        
-        positions = positions + noise
-        print(f"Final positions shape: {positions.shape}")
-        
-        # Update particle positions
-        particles.set_position(positions)
-        
-        # Step simulation
-        scene.step()
-
-        rgb, depth, segmentation, normal = cam.render(
-            rgb=True, 
-            depth=True, 
-            segmentation=True, 
-            normal=True
-        )
-        frames.append(rgb)
-        
-        print(f"rendering frame {timestep}", flush=True)
-        # frame = scene.render()
-        # frames.append(frame)
-        
-        t_now = time()
-        print(1 / (t_now - t_prev), "FPS")
-        t_prev = t_now
-        sleep(0.0005)
+        # Process each timestep's actions
+        for t_idx, actions in enumerate(batch_actions):
+            timestep = batch_start + t_idx
+            print(f"Visualizing step {timestep}")
+            
+            # Get positions from noise actions
+            action = actions.numpy()  # [1, 6]
+            xyz_position = action[0, :3]  # Take XYZ coordinates
+            
+            # Create particle positions
+            positions = np.tile(xyz_position, (n_particles, 1))
+            noise = np.random.normal(0, 0.05, (n_particles, 3))
+            positions = positions + noise
+            
+            # Update particle positions
+            particles.set_position(positions)
+            scene.step()
+            
+            t_now = time()
+            print(1 / (t_now - t_prev), "FPS")
+            t_prev = t_now
+            sleep(0.0005)
 
     if scene.viewer is not None:
         scene.viewer.stop()
