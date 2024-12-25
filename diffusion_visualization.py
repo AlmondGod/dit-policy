@@ -95,7 +95,7 @@ class DiffusionVisualizer:
 
 
             
-            self.model._eval_diffusion_steps = 100
+            self.model._eval_diffusion_steps = 8
             self.diffusion_schedule = self.model.diffusion_schedule
             self.noise_net = self.model.noise_net
             
@@ -221,7 +221,8 @@ def main():
     virtual_display = Display(visible=0, size=(800, 600))
     virtual_display.start()
     
-    gs.init(backend=gs.cpu)
+    print("torch.cuda.is_available()", torch.cuda.is_available())
+    gs.init(backend=gs.gpu)
     
     scene = gs.Scene(
         sim_options=gs.options.SimOptions(dt=4e-3, substeps=10),
