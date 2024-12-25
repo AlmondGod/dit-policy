@@ -211,8 +211,7 @@ def main():
     scene = gs.Scene(
         sim_options=gs.options.SimOptions(
             dt=4e-3, 
-            substeps=10,
-            domain_size=(1.0, 1.0, 1.0),  # Reduced from 4.0
+            substeps=10
         ),
         mpm_options=gs.options.MPMOptions(
             lower_bound=(-0.5, -0.5, -0.5),  # Reduced from -2.0
