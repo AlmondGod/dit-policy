@@ -206,7 +206,7 @@ def main():
     virtual_display.start()
     
     print("torch.cuda.is_available()", torch.cuda.is_available())
-    gs.init(backend=gs.gpu)
+    gs.init(backend=gs.cpu)
     
     scene = gs.Scene(
         sim_options=gs.options.SimOptions(
@@ -263,7 +263,9 @@ def main():
     
     cam.start_recording()
     
-    visualizer = DiffusionVisualizer(args.model_path)
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    print(f"Using device: {device}")
+    visualizer = DiffusionVisualizer(args.model_path, device=device)
     
     frames = []
     print("\nStarting simulation...")
