@@ -260,7 +260,7 @@ def main():
     print("\nStarting simulation...")
     run_sim(scene, visualizer, frames, cam, particles)
 
-    cam.stop_recording(save_to_filename="diffusion_visualization.mov")
+    # cam.stop_recording(save_to_filename="diffusion_visualization.mov")
     
     # print("\nSaving animation...")
     # imageio.mimsave('diffusion_visualization.gif', frames, fps=30)
