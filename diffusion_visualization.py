@@ -209,10 +209,15 @@ def main():
     gs.init(backend=gs.gpu)
     
     scene = gs.Scene(
-        sim_options=gs.options.SimOptions(dt=4e-3, substeps=10),
+        sim_options=gs.options.SimOptions(
+            dt=4e-3, 
+            substeps=10,
+            domain_size=(1.0, 1.0, 1.0),  # Reduced from 4.0
+        ),
         mpm_options=gs.options.MPMOptions(
-            lower_bound=(-2.0, -2.0, -2.0),
-            upper_bound=(2.0, 2.0, 2.0),
+            lower_bound=(-0.5, -0.5, -0.5),  # Reduced from -2.0
+            upper_bound=(0.5, 0.5, 0.5),    # Reduced from 2.0
+            grid_density=32,  # Added to reduce memory usage
         ),
         viewer_options=gs.options.ViewerOptions(
             camera_pos=(0.0, 0.0, 3.5),
