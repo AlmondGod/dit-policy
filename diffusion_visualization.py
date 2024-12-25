@@ -223,7 +223,7 @@ def main():
     )
     
     # Create a color array for each particle
-    n_particles = 1034  # Your particle count
+    n_particles = 4 # Your particle count
     colors = np.random.uniform(0.2, 1.0, (n_particles, 4))  # RGBA format
     colors[:, 3] = 1.0  # Set alpha to 1.0
     
