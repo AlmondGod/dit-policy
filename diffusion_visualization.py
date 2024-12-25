@@ -258,7 +258,7 @@ def main():
     
     frames = []
     print("\nStarting simulation...")
-    run_sim(scene, visualizer, frames, cam, particles)
+    # run_sim(scene, visualizer, frames, cam, particles)
 
     # cam.stop_recording(save_to_filename="diffusion_visualization.mov")
     
