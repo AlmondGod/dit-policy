@@ -229,35 +229,39 @@ def main():
     gs.init(backend=gs.cpu)
     
     scene = gs.Scene(
-        sim_options=gs.options.SimOptions(dt=4e-3, substeps=10),
-        mpm_options=gs.options.MPMOptions(
-            lower_bound=(-1.0, -1.0, 0.0),
-            upper_bound=(1.0, 1.0, 1.0),
+        sim_options=gs.options.SimOptions(
+            # Increase domain size and shift it up in z-direction
+            domain_size=(2.0, 2.0, 2.0),  # Make domain bigger
+            grid_size=(64, 64, 64),
+            gravity=(0.0, 0.0, 0.0),
         ),
         viewer_options=gs.options.ViewerOptions(
-            camera_pos=(3.5, 0.0, 2.5),
-            camera_lookat=(0.0, 0.0, 0.5),
-            camera_fov=40,
+            camera_pos=(0.0, 0.0, 3.5),
+            camera_lookat=(0.0, 0.0, 0.0),
+            camera_fov=30,
         ),
-        show_viewer=False
     )
     
+    # Add particles with offset in z-direction
     particles = scene.add_entity(
-        material=gs.materials.MPM.Liquid(),
-        morph=gs.morphs.Box(
-            pos=(0.0, 0.0, 0.0),
-            size=(0.1, 0.1, 0.1)
+        gs.morphs.Box(
+            size=(0.1, 0.1, 0.1),
+            pos=(0.0, 0.0, 0.5),  # Lift particles up in z-direction
         ),
-        surface=gs.surfaces.Default(
-            color=(0.4, 0.4, 1.0),
-            vis_mode="particle"
-        )
+        material=gs.materials.MPM.Liquid(
+            density=1000.0,
+            youngs_modulus=1e5,
+            poissons_ratio=0.4,
+            friction_angle=1,
+            particle_density=32,
+        ),
     )
     
+    # Add camera
     cam = scene.add_camera(
-        res=(640, 480),
-        pos=(0.0, 0.0, 2),
-        lookat=(0, 0, 0),
+        res=(320, 320),
+        pos=(0.0, 0.0, 3.5),
+        lookat=(0.0, 0.0, 0.0),
         fov=30,
         GUI=True,
     )
