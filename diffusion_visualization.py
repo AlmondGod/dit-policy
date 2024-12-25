@@ -238,6 +238,8 @@ def main():
             vis_mode="particle"
         )
     )
+
+    scene.build()
     
     cam = scene.add_camera(
         res=(640, 480),
@@ -247,7 +249,6 @@ def main():
         GUI=True,
     )
     
-    scene.build()
 
     #terminate
     quit()
