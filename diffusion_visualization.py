@@ -158,8 +158,8 @@ def run_sim(scene, visualizer, frames, cam, particles):
     print("Starting simulation...")
     
     # Number of steps to process in parallel
-    batch_size = 1  # Adjust based on your GPU memory
-    n_steps = 1
+    batch_size = 10  # Adjust based on your GPU memory
+    n_steps = 20
     
     # Initialize noise actions for all timesteps
     noise_actions = torch.randn(batch_size, 6).to(visualizer.device)
@@ -237,6 +237,11 @@ def main():
         show_viewer=False
     )
     
+    # Create a color array for each particle
+    n_particles = 1034  # Your particle count
+    colors = np.random.uniform(0.2, 1.0, (n_particles, 4))  # RGBA format
+    colors[:, 3] = 1.0  # Set alpha to 1.0
+    
     particles = scene.add_entity(
         material=gs.materials.MPM.Liquid(),
         morph=gs.morphs.Box(
@@ -244,7 +249,7 @@ def main():
             size=(0.1, 0.1, 0.1)
         ),
         surface=gs.surfaces.Default(
-            color=(0.4, 0.4, 1.0),
+            color=colors,  # Pass per-particle colors
             vis_mode="particle"
         )
     )
