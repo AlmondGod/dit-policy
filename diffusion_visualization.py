@@ -158,8 +158,8 @@ def run_sim(scene, visualizer, frames, cam, particles):
     print("Starting simulation...")
     
     # Number of steps to process in parallel
-    batch_size = 10  # Adjust based on your GPU memory
-    n_steps = 20
+    batch_size = 1  # Adjust based on your GPU memory
+    n_steps = 1
     
     # Initialize noise actions for all timesteps
     noise_actions = torch.randn(batch_size, 6).to(visualizer.device)
