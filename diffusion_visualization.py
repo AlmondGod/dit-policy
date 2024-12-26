@@ -212,7 +212,7 @@ def run_sim(scene, visualizer, frames, cam, particles):
 
             print("set particle positions, stepping scene")
             scene.step()
-            scene.visualizer._viewer.update()  # Force sync viewer state
+            
             torch.cuda.synchronize()
             print("stepped scene")
             
