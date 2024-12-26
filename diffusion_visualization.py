@@ -294,7 +294,7 @@ def main():
     cam.stop_recording(save_to_filename="diffusion_visualization.mp4")
 
     #save frames
-    np.save("diffusion_visualization.npy", frames)
+    np.save("diffusion_visualization.mov", frames)
     
     # print("\nSaving animation...")
     # imageio.mimsave('diffusion_visualization.gif', frames, fps=30)
