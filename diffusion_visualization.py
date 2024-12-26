@@ -212,22 +212,22 @@ def run_sim(scene, visualizer, frames, cam, particles):
             print("stepped scene")
             
             # Add error handling for render
-            try:
-                rgb, depth, seg, normal = cam.render(
-                    rgb=True,
-                    depth=False, 
-                    segmentation=False,
-                    normal=False
-                )
-                torch.cuda.synchronize()  # Ensure GPU operations are complete
-                print("rendered frame")
-            except Exception as e:
-                print(f"Render failed with error: {e}")
-                # Continue with the simulation even if rendering fails
-                rgb, depth, seg, normal = None, None, None, None
+            # try:
+            #     rgb, depth, seg, normal = cam.render(
+            #         rgb=True,
+            #         depth=False, 
+            #         segmentation=False,
+            #         normal=False
+            #     )
+            #     torch.cuda.synchronize()  # Ensure GPU operations are complete
+            #     print("rendered frame")
+            # except Exception as e:
+            #     print(f"Render failed with error: {e}")
+            #     # Continue with the simulation even if rendering fails
+            #     rgb, depth, seg, normal = None, None, None, None
 
-            if rgb is not None:
-                frames.append(rgb)
+            # if rgb is not None:
+            #     frames.append(rgb)
 
             t_now = time()
             print(t_now - t_prev, "time for step")
@@ -307,7 +307,6 @@ def main():
     # Set the colors after particle creation
     particles.surface.color = colors
 
-    
     cam = scene.add_camera(
         res=(640, 480),
         pos=(0.0, 0.0, 2),
