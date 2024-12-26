@@ -276,7 +276,7 @@ def main():
             camera_lookat=(0.0, 0.0, 0.0),
             camera_fov=30,
         ),
-        show_viewer=False
+        show_viewer=True
     )
     
     # First create the particles with a default color
