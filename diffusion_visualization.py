@@ -313,7 +313,7 @@ def main():
         pos=(0.0, 0.0, 2),
         lookat=(0, 0, 0),
         fov=30,
-        GUI=True,
+        GUI=False,
     )
     
     scene.build()
