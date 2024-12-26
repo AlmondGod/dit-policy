@@ -204,6 +204,13 @@ def run_sim(scene, visualizer, frames, cam, particles):
             t_prev = t_now
             sleep(0.0005)
 
+            # Force garbage collection between steps
+            gc.collect()
+            torch.cuda.empty_cache()  # Clear CUDA cache
+            
+            # Add small delay to allow system to stabilize
+            sleep(0.1)
+
     if scene.viewer is not None:
         scene.viewer.stop()
 
@@ -289,7 +296,17 @@ def main():
 
     frames = []
     print("\nStarting simulation...")
-    run_sim(scene, visualizer, frames, cam, particles)
+    try:
+        run_sim(scene, visualizer, frames, cam, particles)
+    except Exception as e:
+        print(f"Simulation failed with error: {e}")
+        import traceback
+        traceback.print_exc()
+    finally:
+        # Cleanup
+        if scene.viewer is not None:
+            scene.viewer.stop()
+        virtual_display.stop()
 
     cam.stop_recording(save_to_filename="diffusion_visualization.mp4")
 
