@@ -63,8 +63,8 @@ class DiffusionVisualizer:
                 n_cams=1,  # From task.n_cams in config
                 use_obs="add_token",  # From config
                 ac_dim=6,  # From task.ac_dim in config
-                ac_chunk=10,  # From config
-                train_diffusion_steps=10,  # From config
+                ac_chunk=20,  # From config
+                train_diffusion_steps=20,  # From config
                 eval_diffusion_steps=8,  # From config
                 imgs_per_cam=1,  # Default value
                 dropout=0.1,  # From config
@@ -100,7 +100,7 @@ class DiffusionVisualizer:
             self.noise_net = self.model.noise_net
             
             # Set up diffusion timesteps
-            self.diffusion_schedule.set_timesteps(num_inference_steps=10)
+            self.diffusion_schedule.set_timesteps(num_inference_steps=20)
             
         except Exception as e:
             print("Error in DiffusionVisualizer initialization:", e)
@@ -159,7 +159,7 @@ def run_sim(scene, visualizer, frames, cam, particles):
     
     # Single noise action
     noise_actions = torch.randn(1, 6).to(visualizer.device)
-    n_steps = 10 # Total number of steps
+    n_steps = 20 # Total number of steps
     
     n_particles = particles._n_particles
     
@@ -223,7 +223,7 @@ def main():
     scene = gs.Scene(
         sim_options=gs.options.SimOptions(
             dt=4e-3, 
-            substeps=10
+            substeps=20
         ),
         mpm_options=gs.options.MPMOptions(
             lower_bound=(-0.5, -0.5, -0.5),  # Reduced from -2.0
