@@ -100,7 +100,7 @@ class DiffusionVisualizer:
             self.noise_net = self.model.noise_net
             
             # Set up diffusion timesteps
-            self.diffusion_schedule.set_timesteps(num_inference_steps=100)
+            self.diffusion_schedule.set_timesteps(num_inference_steps=10)
             
         except Exception as e:
             print("Error in DiffusionVisualizer initialization:", e)
