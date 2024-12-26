@@ -16,6 +16,7 @@ from observations import DummyObs
 from data4robotics.models.resnet import ResNet
 from time import time, sleep
 from datetime import datetime
+from signal import signal, alarm, SIGALRM
     
 
 class DiffusionVisualizer:
@@ -211,15 +212,15 @@ def run_sim(scene, visualizer, frames, cam, particles):
 
             print("set particle positions, stepping scene")
             scene.step()
-            torch.cuda.synchronize()  # Ensure GPU operations are complete
+            scene.visualizer._viewer.update()  # Force sync viewer state
+            torch.cuda.synchronize()
             print("stepped scene")
             
             # Add error handling for render
             try:
                 # Set up timeout
-                from signal import signal, alarm, SIGALRM
                 signal(SIGALRM, timeout_handler)
-                alarm(3)  # 3 second timeout
+                alarm(10)  # 3 second timeout
                 
                 rgb, depth, seg, normal = cam.render(
                     rgb=True,
@@ -235,9 +236,14 @@ def run_sim(scene, visualizer, frames, cam, particles):
                 print("rendered frame")
             except TimeoutError:
                 print("Render timed out after 3 seconds, skipping frame")
+                alarm(0)  # Make sure to cancel alarm
+                torch.cuda.empty_cache()  # Clear CUDA memory
+                scene.visualizer._viewer.update()  # Force viewer update
                 rgb, depth, seg, normal = None, None, None, None
             except Exception as e:
                 print(f"Render failed with error: {e}")
+                alarm(0)  # Make sure to cancel alarm
+                torch.cuda.empty_cache()
                 rgb, depth, seg, normal = None, None, None, None
 
             if rgb is not None:
