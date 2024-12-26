@@ -15,6 +15,7 @@ from data4robotics.models.diffusion import DiffusionTransformerAgent
 from observations import DummyObs
 from data4robotics.models.resnet import ResNet
 from time import time, sleep
+from datetime import datetime
     
 
 class DiffusionVisualizer:
@@ -211,19 +212,19 @@ def run_sim(scene, visualizer, frames, cam, particles):
             print("stepped scene")
             
             # Add error handling for render
-            # try:
-            #     rgb, depth, seg, normal = cam.render(
-            #         rgb=True,
-            #         depth=True, 
-            #         segmentation=True,
-            #         normal=True
-            #     )
-            #     torch.cuda.synchronize()  # Ensure GPU operations are complete
-            #     print("rendered frame")
-            # except Exception as e:
-            #     print(f"Render failed with error: {e}")
-            #     # Continue with the simulation even if rendering fails
-            #     rgb, depth, seg, normal = None, None, None, None
+            try:
+                rgb, depth, seg, normal = cam.render(
+                    rgb=True,
+                    depth=True, 
+                    segmentation=True,
+                    normal=True
+                )
+                torch.cuda.synchronize()  # Ensure GPU operations are complete
+                print("rendered frame")
+            except Exception as e:
+                print(f"Render failed with error: {e}")
+                # Continue with the simulation even if rendering fails
+                rgb, depth, seg, normal = None, None, None, None
 
             # if rgb is not None:
             #     frames.append(rgb)
@@ -341,10 +342,12 @@ def main():
             scene.viewer.stop()
         virtual_display.stop()
 
-    cam.stop_recording(save_to_filename="diffusion_visualization.mp4")
+    #include time in name
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    cam.stop_recording(save_to_filename=f"diffusion_visualization_{timestamp}.mp4")
 
     #save frames
-    np.save("diffusion_visualization.mov", frames)
+    # np.save("diffusion_visualization.mov", frames)
     
     # print("\nSaving animation...")
     # imageio.mimsave('diffusion_visualization.gif', frames, fps=30)
