@@ -204,8 +204,6 @@ def run_sim(scene, visualizer, frames, cam, particles):
             t_prev = t_now
             sleep(0.0005)
 
-            # Force garbage collection between steps
-            gc.collect()
             torch.cuda.empty_cache()  # Clear CUDA cache
             
             # Add small delay to allow system to stabilize
