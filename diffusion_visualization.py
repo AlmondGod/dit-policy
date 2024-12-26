@@ -18,7 +18,7 @@ from time import time, sleep
     
 
 class DiffusionVisualizer:
-    def __init__(self, model_path, device='cpu'):
+    def __init__(self, model_path, device='cuda'):
         print(f"Initializing DiffusionVisualizer with device: {device}")
         try:
             print("Loading checkpoint...")
@@ -255,29 +255,28 @@ def main():
     particles.surface.color = colors
 
     
-    # cam = scene.add_camera(
-    #     res=(640, 480),
-    #     pos=(0.0, 0.0, 2),
-    #     lookat=(0, 0, 0),
-    #     fov=30,
-    #     GUI=True,
-    # )
+    cam = scene.add_camera(
+        res=(640, 480),
+        pos=(0.0, 0.0, 2),
+        lookat=(0, 0, 0),
+        fov=30,
+        GUI=True,
+    )
     
     scene.build()
 
     # render rgb, depth, segmentation, normal
-    # rgb, depth, segmentation, normal = cam.render(rgb=True, depth=True, segmentation=True, normal=True)
+    rgb, depth, segmentation, normal = cam.render(rgb=True, depth=True, segmentation=True, normal=True)
     
-    # cam.start_recording()
+    cam.start_recording()
 
-
-    #terminate
-    quit()
-    
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     print(f"Using device: {device}")
     visualizer = DiffusionVisualizer(args.model_path, device=device)
     
+    #terminate
+    quit()
+
     frames = []
     print("\nStarting simulation...")
     # run_sim(scene, visualizer, frames, cam, particles)
