@@ -165,6 +165,9 @@ class DiffusionVisualizer:
             
             return noise_actions
 
+def timeout_handler(signum, frame):
+    raise TimeoutError("Render timed out")
+
 def run_sim(scene, visualizer, frames, cam, particles):
     """Run simulation with visualization"""
     print("Starting simulation...")
@@ -213,17 +216,28 @@ def run_sim(scene, visualizer, frames, cam, particles):
             
             # Add error handling for render
             try:
+                # Set up timeout
+                from signal import signal, alarm, SIGALRM
+                signal(SIGALRM, timeout_handler)
+                alarm(3)  # 3 second timeout
+                
                 rgb, depth, seg, normal = cam.render(
                     rgb=True,
                     depth=False, 
                     segmentation=False,
                     normal=False
                 )
-                torch.cuda.synchronize()  # Ensure GPU operations are complete
+                
+                # Cancel the alarm
+                alarm(0)
+                
+                torch.cuda.synchronize()
                 print("rendered frame")
+            except TimeoutError:
+                print("Render timed out after 3 seconds, skipping frame")
+                rgb, depth, seg, normal = None, None, None, None
             except Exception as e:
                 print(f"Render failed with error: {e}")
-                # Continue with the simulation even if rendering fails
                 rgb, depth, seg, normal = None, None, None, None
 
             if rgb is not None:
