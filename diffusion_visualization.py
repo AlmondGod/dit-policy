@@ -226,11 +226,7 @@ def main():
         show_viewer=False
     )
     
-    # Create a color array for each particle
-    n_particles = 8 # Your particle count
-    colors = np.random.uniform(0.2, 1.0, (n_particles, 4))  # RGBA format
-    colors[:, 3] = 1.0  # Set alpha to 1.0
-    
+    # First create the particles with a default color
     particles = scene.add_entity(
         material=gs.materials.MPM.Liquid(),
         morph=gs.morphs.Box(
@@ -238,10 +234,25 @@ def main():
             size=(0.1, 0.1, 0.1)
         ),
         surface=gs.surfaces.Default(
-            color=colors,  # Pass per-particle colors
+            color=(0.2, 0.6, 1.0, 1.0),  # Default color
             vis_mode="particle"
         )
     )
+
+    # Get the actual number of particles that were created
+    n_particles = particles._n_particles
+    print(f"Number of particles: {n_particles}")
+    
+    # Create rainbow gradient colors similar to render_particles.py circular trajectory
+    theta = np.linspace(0, 2*np.pi, n_particles)
+    colors = np.zeros((n_particles, 4))
+    colors[:, 0] = 0.5 + 0.5 * np.sin(theta)  # Red channel
+    colors[:, 1] = 0.5 + 0.5 * np.sin(theta + 2*np.pi/3)  # Green channel
+    colors[:, 2] = 0.5 + 0.5 * np.sin(theta + 4*np.pi/3)  # Blue channel
+    colors[:, 3] = 1.0  # Alpha channel
+    
+    # Set the colors after particle creation
+    particles.surface.color = colors
 
     scene.build()
     
