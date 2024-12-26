@@ -211,7 +211,14 @@ def run_sim(scene, visualizer, frames, cam, particles):
             particles.set_position(positions)
 
             print("set particle positions, stepping scene")
+            # Before render
+            torch.cuda.synchronize()  # Make sure all CUDA operations are done
             scene.step()
+            torch.cuda.synchronize()  # Wait for step to complete
+
+            # After render timeout
+            torch.cuda.synchronize()  # Make sure GPU is in consistent state
+            torch.cuda.empty_cache()
             
             torch.cuda.synchronize()
             print("stepped scene")
@@ -220,7 +227,7 @@ def run_sim(scene, visualizer, frames, cam, particles):
             try:
                 # Set up timeout
                 signal(SIGALRM, timeout_handler)
-                alarm(10)  # 3 second timeout
+                alarm(10)  # 10 second timeout
                 
                 rgb, depth, seg, normal = cam.render(
                     rgb=True,
@@ -235,14 +242,16 @@ def run_sim(scene, visualizer, frames, cam, particles):
                 torch.cuda.synchronize()
                 print("rendered frame")
             except TimeoutError:
-                print("Render timed out after 3 seconds, skipping frame")
+                print("Render timed out after 10 seconds, skipping frame")
                 alarm(0)  # Make sure to cancel alarm
                 torch.cuda.empty_cache()  # Clear CUDA memory
-                scene.visualizer._viewer.update()  # Force viewer update
+                # Only try to update viewer if it exists
+                if scene.visualizer is not None and scene.visualizer._viewer is not None:
+                    scene.visualizer._viewer.update()
                 rgb, depth, seg, normal = None, None, None, None
             except Exception as e:
                 print(f"Render failed with error: {e}")
-                alarm(0)  # Make sure to cancel alarm
+                alarm(0)
                 torch.cuda.empty_cache()
                 rgb, depth, seg, normal = None, None, None, None
 
