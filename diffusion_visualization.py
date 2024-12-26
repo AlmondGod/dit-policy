@@ -188,6 +188,17 @@ def run_sim(scene, visualizer, frames, cam, particles):
             particles.set_position(positions)
             scene.step()
             
+            # Capture frame
+            rgb, depth, seg, normal = cam.render(
+                rgb=True,
+                depth=True, 
+                segmentation=True,
+                normal=True
+            )
+            
+            if rgb is not None:
+                frames.append(rgb)
+
             t_now = time()
             print(1 / (t_now - t_prev), "FPS")
             t_prev = t_now
@@ -281,6 +292,9 @@ def main():
     run_sim(scene, visualizer, frames, cam, particles)
 
     cam.stop_recording(save_to_filename="diffusion_visualization.mp4")
+
+    #save frames
+    np.save("diffusion_visualization.npy", frames)
     
     # print("\nSaving animation...")
     # imageio.mimsave('diffusion_visualization.gif', frames, fps=30)
