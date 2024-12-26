@@ -159,7 +159,7 @@ def run_sim(scene, visualizer, frames, cam, particles):
     
     # Single noise action
     noise_actions = torch.randn(1, 6).to(visualizer.device)
-    n_steps = 2  # Total number of steps
+    n_steps = 10 # Total number of steps
     
     n_particles = particles._n_particles
     print(f"Number of particles: {n_particles}")
@@ -284,14 +284,14 @@ def main():
 
     cam.stop_recording(save_to_filename="diffusion_visualization.mov")
     
-    print("\nSaving animation...")
-    imageio.mimsave('diffusion_visualization.gif', frames, fps=30)
-    print("Animation saved")
+    # print("\nSaving animation...")
+    # imageio.mimsave('diffusion_visualization.gif', frames, fps=30)
+    # print("Animation saved")
     
-    print("\nDisplaying result...")
-    with open('diffusion_visualization.gif', 'rb') as f:
-        display.display(display.Image(data=f.read(), format='gif'))
-    print("Display complete")
+    # print("\nDisplaying result...")
+    # with open('diffusion_visualization.gif', 'rb') as f:
+    #     display.display(display.Image(data=f.read(), format='gif'))
+    # print("Display complete")
 
 if __name__ == "__main__":
     main()
