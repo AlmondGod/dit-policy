@@ -184,20 +184,31 @@ def run_sim(scene, visualizer, frames, cam, particles):
             # Run single diffusion step
             noise_actions = visualizer.run_diffusion_step({}, noise_actions, timestep)
             
+            print("ran diffusion step")
+            
             # Get positions from noise actions - only take first 3 dimensions
             action = noise_actions.cpu().numpy()[0, :3]  # Take only XYZ coordinates [3]
             
+            print("got noise actions")
             # Create particle positions - reshape to match number of particles
             positions = np.tile(action, (n_particles, 1))  # Shape will be (n_particles, 3)
             noise = np.random.normal(0, 0.05, (n_particles, 3))
+
+            print("got positions")
 
             positions = positions[:114, :3]
 
             positions = positions + noise
             
+            print("updated positions with noise, setting particle positions")
+
             # Update particle positions
             particles.set_position(positions)
+
+            print("set particle positions, stepping scene")
             scene.step()
+
+            print("stepped scene")
             
             # Capture frame
             rgb, depth, seg, normal = cam.render(
@@ -207,13 +218,15 @@ def run_sim(scene, visualizer, frames, cam, particles):
                 normal=True
             )
             
+            print("rendered frame")
+
             if rgb is not None:
                 frames.append(rgb)
 
             t_now = time()
             print(t_now - t_prev, "time for step")
             t_prev = t_now
-            sleep(0.0005)
+            # sleep(0.0005)
 
             torch.cuda.empty_cache()  # Clear CUDA cache
             
