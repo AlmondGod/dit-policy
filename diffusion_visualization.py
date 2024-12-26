@@ -112,6 +112,9 @@ class DiffusionVisualizer:
     def run_diffusion_step(self, obs_dict, noise_actions, timestep):
         """Run a single step of the diffusion process"""
         with torch.no_grad():
+
+            # add print statements below
+            print("running diffusion step")
             # Create proper observation format
             obs = DummyObs()
             raw_image = obs.image(0)  # [H, W, C]
@@ -122,6 +125,8 @@ class DiffusionVisualizer:
             images = images.permute(2, 0, 1)  # [C, H, W]
             images = images.unsqueeze(0)  # [1, C, H, W]
             
+
+            print("processing states")
             states = torch.from_numpy(states.copy()).float().to(self.device)
             states = states.unsqueeze(0)  # [1, state_dim]
             
@@ -130,6 +135,8 @@ class DiffusionVisualizer:
             
             B = noise_actions.shape[0]
             s_t = self.model.tokenize_obs(image_dict, states)
+
+            print("tokenized obs")
             
             # For transformer model, we need encoder cache
             if not hasattr(self, 'enc_cache'):
@@ -145,11 +152,15 @@ class DiffusionVisualizer:
                 noise_actions, batched_timestep, self.enc_cache
             )
             
+            print("forward dec")
+            
             noise_actions = self.diffusion_schedule.step(
                 model_output=noise_pred,
                 timestep=timestep if isinstance(timestep, torch.Tensor) else torch.tensor(timestep),
                 sample=noise_actions
             ).prev_sample
+            
+            print("stepped")
             
             return noise_actions
 
@@ -200,7 +211,7 @@ def run_sim(scene, visualizer, frames, cam, particles):
                 frames.append(rgb)
 
             t_now = time()
-            print(1 / (t_now - t_prev), "FPS")
+            print(t_now - t_prev, "time for step")
             t_prev = t_now
             sleep(0.0005)
 
