@@ -212,22 +212,22 @@ def run_sim(scene, visualizer, frames, cam, particles):
             print("stepped scene")
             
             # Add error handling for render
-            # try:
-            #     rgb, depth, seg, normal = cam.render(
-            #         rgb=True,
-            #         depth=False, 
-            #         segmentation=False,
-            #         normal=False
-            #     )
-            #     torch.cuda.synchronize()  # Ensure GPU operations are complete
-            #     print("rendered frame")
-            # except Exception as e:
-            #     print(f"Render failed with error: {e}")
-            #     # Continue with the simulation even if rendering fails
-            #     rgb, depth, seg, normal = None, None, None, None
+            try:
+                rgb, depth, seg, normal = cam.render(
+                    rgb=True,
+                    depth=False, 
+                    segmentation=False,
+                    normal=False
+                )
+                torch.cuda.synchronize()  # Ensure GPU operations are complete
+                print("rendered frame")
+            except Exception as e:
+                print(f"Render failed with error: {e}")
+                # Continue with the simulation even if rendering fails
+                rgb, depth, seg, normal = None, None, None, None
 
-            # if rgb is not None:
-            #     frames.append(rgb)
+            if rgb is not None:
+                frames.append(rgb)
 
             t_now = time()
             print(t_now - t_prev, "time for step")
@@ -249,14 +249,14 @@ def main():
     parser.add_argument("-m", "--model_path", required=True)
     args = parser.parse_args()
     
-    virtual_display = Display(
-        visible=0, 
-        size=(800, 600),
-        color_depth=24,  # Specify color depth
-        backend='xvfb',  # Explicitly set backend
-        extra_args=['-ac', '-screen', '0', '800x600x24']  # Additional X server args
-    )
-    virtual_display.start()
+    # virtual_display = Display(
+    #     visible=0, 
+    #     size=(800, 600),
+    #     color_depth=24,  # Specify color depth
+    #     backend='xvfb',  # Explicitly set backend
+    #     extra_args=['-ac', '-screen', '0', '800x600x24']  # Additional X server args
+    # )
+    # virtual_display.start()
     
     print("torch.cuda.is_available()", torch.cuda.is_available())
     gs.init(backend=gs.cpu)
@@ -276,7 +276,7 @@ def main():
             camera_lookat=(0.0, 0.0, 0.0),
             camera_fov=30,
         ),
-        show_viewer=True
+        show_viewer=False
     )
     
     # First create the particles with a default color
@@ -308,17 +308,18 @@ def main():
     particles.surface.color = colors
 
     cam = scene.add_camera(
-        res=(640, 480),
+        res=(64, 48),
         pos=(0.0, 0.0, 2),
         lookat=(0, 0, 0),
         fov=30,
         GUI=False,
+        denoise=False
     )
     
     scene.build()
 
     # render rgb, depth, segmentation, normal
-    rgb, depth, segmentation, normal = cam.render(rgb=True, depth=True, segmentation=True, normal=True)
+    # rgb, depth, segmentation, normal = cam.render(rgb=True, depth=True, segmentation=True, normal=True)
     
     cam.start_recording()
 
@@ -339,7 +340,7 @@ def main():
         # Cleanup
         if scene.viewer is not None:
             scene.viewer.stop()
-        virtual_display.stop()
+        # virtual_display.stop()
 
     #include time in name
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
