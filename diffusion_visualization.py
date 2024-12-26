@@ -174,12 +174,11 @@ def run_sim(scene, visualizer, frames, cam, particles):
             # Run single diffusion step
             noise_actions = visualizer.run_diffusion_step({}, noise_actions, timestep)
             
-            # Get positions from noise actions
-            action = noise_actions.cpu().numpy()[0]  # [6]
-            xyz_position = action[:3]  # Take XYZ coordinates
+            # Get positions from noise actions - only take first 3 dimensions
+            action = noise_actions.cpu().numpy()[0, :3]  # Take only XYZ coordinates [3]
             
-            # Create particle positions
-            positions = np.tile(xyz_position, (n_particles, 1))
+            # Create particle positions - reshape to match number of particles
+            positions = np.tile(action, (n_particles, 1))  # Shape will be (n_particles, 3)
             noise = np.random.normal(0, 0.05, (n_particles, 3))
             print(f"positions shape: {positions.shape}, noise shape: {noise.shape}")
             positions = positions + noise
