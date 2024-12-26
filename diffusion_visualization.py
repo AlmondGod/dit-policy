@@ -255,20 +255,20 @@ def main():
     particles.surface.color = colors
 
     
-    cam = scene.add_camera(
-        res=(640, 480),
-        pos=(0.0, 0.0, 2),
-        lookat=(0, 0, 0),
-        fov=30,
-        GUI=True,
-    )
+    # cam = scene.add_camera(
+    #     res=(640, 480),
+    #     pos=(0.0, 0.0, 2),
+    #     lookat=(0, 0, 0),
+    #     fov=30,
+    #     GUI=True,
+    # )
     
     scene.build()
 
     # render rgb, depth, segmentation, normal
-    rgb, depth, segmentation, normal = cam.render(rgb=True, depth=True, segmentation=True, normal=True)
+    # rgb, depth, segmentation, normal = cam.render(rgb=True, depth=True, segmentation=True, normal=True)
     
-    cam.start_recording()
+    # cam.start_recording()
 
 
     #terminate
