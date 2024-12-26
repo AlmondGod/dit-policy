@@ -254,7 +254,6 @@ def main():
     # Set the colors after particle creation
     particles.surface.color = colors
 
-    scene.build()
     
     cam = scene.add_camera(
         res=(640, 480),
@@ -264,14 +263,16 @@ def main():
         GUI=True,
     )
     
+    scene.build()
 
-    #terminate
-    quit()
-    
     # render rgb, depth, segmentation, normal
     rgb, depth, segmentation, normal = cam.render(rgb=True, depth=True, segmentation=True, normal=True)
     
     cam.start_recording()
+
+
+    #terminate
+    quit()
     
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     print(f"Using device: {device}")
