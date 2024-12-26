@@ -207,18 +207,23 @@ def run_sim(scene, visualizer, frames, cam, particles):
 
             print("set particle positions, stepping scene")
             scene.step()
-
+            torch.cuda.synchronize()  # Ensure GPU operations are complete
             print("stepped scene")
             
-            # Capture frame
-            rgb, depth, seg, normal = cam.render(
-                rgb=True,
-                depth=True, 
-                segmentation=True,
-                normal=True
-            )
-            
-            print("rendered frame")
+            # Add error handling for render
+            try:
+                rgb, depth, seg, normal = cam.render(
+                    rgb=True,
+                    depth=True, 
+                    segmentation=True,
+                    normal=True
+                )
+                torch.cuda.synchronize()  # Ensure GPU operations are complete
+                print("rendered frame")
+            except Exception as e:
+                print(f"Render failed with error: {e}")
+                # Continue with the simulation even if rendering fails
+                rgb, depth, seg, normal = None, None, None, None
 
             if rgb is not None:
                 frames.append(rgb)
@@ -243,7 +248,13 @@ def main():
     parser.add_argument("-m", "--model_path", required=True)
     args = parser.parse_args()
     
-    virtual_display = Display(visible=0, size=(800, 600))
+    virtual_display = Display(
+        visible=0, 
+        size=(800, 600),
+        color_depth=24,  # Specify color depth
+        backend='xvfb',  # Explicitly set backend
+        extra_args=['-ac', '-screen', '0', '800x600x24']  # Additional X server args
+    )
     virtual_display.start()
     
     print("torch.cuda.is_available()", torch.cuda.is_available())
