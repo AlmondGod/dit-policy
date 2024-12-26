@@ -274,23 +274,21 @@ def main():
     print(f"Using device: {device}")
     visualizer = DiffusionVisualizer(args.model_path, device=device)
     
-    #terminate
-    quit()
 
     frames = []
     print("\nStarting simulation...")
-    # run_sim(scene, visualizer, frames, cam, particles)
+    run_sim(scene, visualizer, frames, cam, particles)
 
-    # cam.stop_recording(save_to_filename="diffusion_visualization.mov")
+    cam.stop_recording(save_to_filename="diffusion_visualization.mov")
     
-    # print("\nSaving animation...")
-    # imageio.mimsave('diffusion_visualization.gif', frames, fps=30)
-    # print("Animation saved")
+    print("\nSaving animation...")
+    imageio.mimsave('diffusion_visualization.gif', frames, fps=30)
+    print("Animation saved")
     
-    # print("\nDisplaying result...")
-    # with open('diffusion_visualization.gif', 'rb') as f:
-    #     display.display(display.Image(data=f.read(), format='gif'))
-    # print("Display complete")
+    print("\nDisplaying result...")
+    with open('diffusion_visualization.gif', 'rb') as f:
+        display.display(display.Image(data=f.read(), format='gif'))
+    print("Display complete")
 
 if __name__ == "__main__":
     main()
