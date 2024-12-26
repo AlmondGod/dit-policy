@@ -212,19 +212,19 @@ def run_sim(scene, visualizer, frames, cam, particles):
             print("stepped scene")
             
             # Add error handling for render
-            try:
-                rgb, depth, seg, normal = cam.render(
-                    rgb=True,
-                    depth=True, 
-                    segmentation=True,
-                    normal=True
-                )
-                torch.cuda.synchronize()  # Ensure GPU operations are complete
-                print("rendered frame")
-            except Exception as e:
-                print(f"Render failed with error: {e}")
-                # Continue with the simulation even if rendering fails
-                rgb, depth, seg, normal = None, None, None, None
+            # try:
+            #     rgb, depth, seg, normal = cam.render(
+            #         rgb=True,
+            #         depth=True, 
+            #         segmentation=True,
+            #         normal=True
+            #     )
+            #     torch.cuda.synchronize()  # Ensure GPU operations are complete
+            #     print("rendered frame")
+            # except Exception as e:
+            #     print(f"Render failed with error: {e}")
+            #     # Continue with the simulation even if rendering fails
+            #     rgb, depth, seg, normal = None, None, None, None
 
             # if rgb is not None:
             #     frames.append(rgb)
