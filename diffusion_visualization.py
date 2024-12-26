@@ -162,7 +162,6 @@ def run_sim(scene, visualizer, frames, cam, particles):
     n_steps = 10 # Total number of steps
     
     n_particles = particles._n_particles
-    print(f"Number of particles: {n_particles}")
     
     t_prev = time()
     
@@ -182,7 +181,6 @@ def run_sim(scene, visualizer, frames, cam, particles):
             noise = np.random.normal(0, 0.05, (n_particles, 3))
 
             positions = positions[:114, :3]
-            print(f"positions shape: {positions.shape}, noise shape: {noise.shape}")
 
             positions = positions + noise
             
@@ -282,7 +280,7 @@ def main():
     print("\nStarting simulation...")
     run_sim(scene, visualizer, frames, cam, particles)
 
-    cam.stop_recording(save_to_filename="diffusion_visualization.mov")
+    cam.stop_recording(save_to_filename="diffusion_visualization.mp4")
     
     # print("\nSaving animation...")
     # imageio.mimsave('diffusion_visualization.gif', frames, fps=30)
