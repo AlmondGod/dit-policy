@@ -180,7 +180,10 @@ def run_sim(scene, visualizer, frames, cam, particles):
             # Create particle positions - reshape to match number of particles
             positions = np.tile(action, (n_particles, 1))  # Shape will be (n_particles, 3)
             noise = np.random.normal(0, 0.05, (n_particles, 3))
+
+            positions = positions[:114, :3]
             print(f"positions shape: {positions.shape}, noise shape: {noise.shape}")
+
             positions = positions + noise
             
             # Update particle positions
