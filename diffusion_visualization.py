@@ -270,9 +270,13 @@ def main():
     )
 
     # add robot arm to scene
-    # r0 = scene.add_entity(
-    #     gs.morphs.MJCF(file="xml/franka_emika_panda/panda.xml"),
-    # )
+    r0 = scene.add_entity(
+        gs.morphs.MJCF(file="xml/franka_emika_panda/panda.xml"),
+    )
+
+    # add plane to scene
+    plane = scene.add_entity(gs.morphs.URDF(file="urdf/plane/plane.urdf", fixed=True))
+
 
     # First create the particles with a default color
     particles = scene.add_entity(
