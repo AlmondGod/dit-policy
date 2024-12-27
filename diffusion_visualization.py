@@ -17,6 +17,8 @@ from data4robotics.models.resnet import ResNet
 from time import time, sleep
 from datetime import datetime
 from signal import signal, alarm, SIGALRM
+from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import TimeoutError
 
 from timeout_decorator import timeout
 
@@ -225,22 +227,32 @@ def run_sim(scene, visualizer, frames, cam, particles):
             torch.cuda.synchronize()
             print("stepped scene")
 
-            @timeout(TIMEOUT_SECONDS, timeout_exception=TimeoutError)
-            def render_with_timeout():
-                return cam.render(
-                    rgb=True,
-                    depth=False,
-                    segmentation=False,
-                    normal=False
-                )
-            
+            def render_with_timeout(timeout_seconds=10):
+                with ThreadPoolExecutor() as executor:
+                    future = executor.submit(cam.render,
+                        rgb=True,
+                        depth=False,
+                        segmentation=False,
+                        normal=False
+                    )
+                    try:
+                        return future.result(timeout=timeout_seconds)
+                    except TimeoutError:
+                        raise TimeoutError(f"Rendering timed out after {timeout_seconds} seconds")
+
             # Add error handling for render
             try:
-                rgb, depth, seg, normal = render_with_timeout()
-                # Process the results
-            except TimeoutError:
-                print(f"Rendering timed out after {TIMEOUT_SECONDS} seconds")
+                rgb, depth, seg, normal = render_with_timeout(5)
+                torch.cuda.synchronize()
+                print("rendered frame")
+            except TimeoutError as e:
+                print(e)
                 rgb, depth, seg, normal = None, None, None, None
+                torch.cuda.empty_cache()
+            except Exception as e:
+                print(f"Render failed with error: {e}")
+                rgb, depth, seg, normal = None, None, None, None
+                torch.cuda.empty_cache()
 
             if rgb is not None:
                 frames.append(rgb)
