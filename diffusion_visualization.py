@@ -127,7 +127,6 @@ class DiffusionVisualizer:
             images = images.permute(2, 0, 1)  # [C, H, W]
             images = images.unsqueeze(0)  # [1, C, H, W]
             
-
             print("processing states")
             states = torch.from_numpy(states.copy()).float().to(self.device)
             states = states.unsqueeze(0)  # [1, state_dim]
@@ -298,7 +297,7 @@ def main():
         mpm_options=gs.options.MPMOptions(
             lower_bound=(-2, -2, -2),  # Reduced from -2.0
             upper_bound=(2, 2, 2),    # Reduced from 2.0
-            grid_density=4,  # Added to reduce memory usage
+            grid_density=2,  # Added to reduce memory usage
         ),
         # viewer_options=gs.options.ViewerOptions(
         #     camera_pos=(1.5, 1.5, 2.5),
@@ -368,7 +367,7 @@ def main():
     visualizer = DiffusionVisualizer(args.model_path, device=device)
     
     print("visualizer built")
-    
+
     frames = []
     print("\nStarting simulation...")
     try:
