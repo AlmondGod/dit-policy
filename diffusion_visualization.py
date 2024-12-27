@@ -289,6 +289,11 @@ def main():
     
     print("torch.cuda.is_available()", torch.cuda.is_available())
     gs.init(backend=gs.cpu)
+
+    # add robot arm to scene
+    r0 = scene.add_entity(
+        gs.morphs.MJCF(file="xml/franka_emika_panda/panda.xml"),
+    )
     
     scene = gs.Scene(
         sim_options=gs.options.SimOptions(
@@ -298,7 +303,7 @@ def main():
         mpm_options=gs.options.MPMOptions(
             lower_bound=(-4, -4, -4),  # Reduced from -2.0
             upper_bound=(4, 4, 4),    # Reduced from 2.0
-            grid_density=4,  # Added to reduce memory usage
+            grid_density=1,  # Added to reduce memory usage
         ),
         viewer_options=gs.options.ViewerOptions(
             camera_pos=(1.5, 1.5, 2.5),
