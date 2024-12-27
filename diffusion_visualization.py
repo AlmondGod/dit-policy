@@ -164,7 +164,7 @@ def run_sim(scene, visualizer, frames, cam, particles):
     
     # Single noise action
     noise_actions = torch.randn(1, 6).to(visualizer.device)
-    n_steps = 20 # Total number of steps
+    n_steps = 10 # Total number of steps
     
     n_particles = particles._n_particles
     
