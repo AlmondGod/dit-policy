@@ -60,7 +60,7 @@ class DiffusionVisualizer:
                 n_cams=1,  # From task.n_cams in config
                 use_obs="add_token",  # From config
                 ac_dim=6,  # From task.ac_dim in config
-                ac_chunk=20,  # From config
+                ac_chunk=40,  # From config
                 train_diffusion_steps=40,  # From config
                 eval_diffusion_steps=8,  # From config
                 imgs_per_cam=1,  # Default value
