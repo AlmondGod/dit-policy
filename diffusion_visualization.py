@@ -17,13 +17,6 @@ from data4robotics.models.resnet import ResNet
 from time import time, sleep
 from datetime import datetime
 from signal import signal, alarm, SIGALRM
-from concurrent.futures import ThreadPoolExecutor
-from concurrent.futures import TimeoutError
-
-from timeout_decorator import timeout
-
-# Define timeout duration in seconds
-TIMEOUT_SECONDS = 10
     
 
 class DiffusionVisualizer:
@@ -226,45 +219,41 @@ def run_sim(scene, visualizer, frames, cam, particles):
             
             torch.cuda.synchronize()
             print("stepped scene")
-
-            def render_with_timeout(timeout_seconds=10):
-                with ThreadPoolExecutor(max_workers=1) as executor:
-                    future = executor.submit(lambda: cam.render(
-                        rgb=True,
-                        depth=False,
-                        segmentation=False,
-                        normal=False
-                    ))
-                    try:
-                        # Make sure we wait for any previous GPU operations
-                        torch.cuda.synchronize()
-                        result = future.result(timeout=timeout_seconds)
-                        torch.cuda.synchronize()  # Sync again after render
-                        return result
-                    except TimeoutError:
-                        torch.cuda.empty_cache()  # Clear CUDA memory on timeout
-                        raise TimeoutError(f"Rendering timed out after {timeout_seconds} seconds")
-
-            # Add error handling for render
-            try:
-                rgb, depth, seg, normal = render_with_timeout(5)
-                torch.cuda.synchronize()
-                print("rendered frame")
-            except TimeoutError as e:
-                print(e)
-                rgb, depth, seg, normal = None, None, None, None
-                torch.cuda.empty_cache()
-            except Exception as e:
-                print(f"Render failed with error: {e}")
-                rgb, depth, seg, normal = None, None, None, None
-                torch.cuda.empty_cache()
-
             
+            # Add error handling for render
+            # try:
+            #     # Set up timeout
+            #     signal(SIGALRM, timeout_handler)
+            #     alarm(10)  # 10 second timeout
+                
+            #     rgb, depth, seg, normal = cam.render(
+            #         rgb=True,
+            #         depth=False, 
+            #         segmentation=False,
+            #         normal=False
+            #     )
+                
+            #     # Cancel the alarm
+            #     alarm(0)
+                
+            #     torch.cuda.synchronize()
+            #     print("rendered frame")
+            # except TimeoutError:
+            #     print("Render timed out after 10 seconds, skipping frame")
+            #     alarm(0)  # Make sure to cancel alarm
+            #     torch.cuda.empty_cache()  # Clear CUDA memory
+            #     # Only try to update viewer if it exists
+            #     if scene.visualizer is not None and scene.visualizer._viewer is not None:
+            #         scene.visualizer._viewer.update()
+            #     rgb, depth, seg, normal = None, None, None, None
+            # except Exception as e:
+            #     print(f"Render failed with error: {e}")
+            #     alarm(0)
+            #     torch.cuda.empty_cache()
+            #     rgb, depth, seg, normal = None, None, None, None
 
-            if rgb is not None:
-                frames.append(rgb)
-
-
+            # if rgb is not None:
+            #     frames.append(rgb)
 
             t_now = time()
             print(t_now - t_prev, "time for step")
