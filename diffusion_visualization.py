@@ -303,7 +303,10 @@ def main():
     # particles.surface.color = colors
 
     cam = scene.add_camera(
-        res=(512, 384),
+        # res=(512, 384),
+        # res=(256, 192),
+        res=(128, 96),
+        # res=(64, 48),
         pos=(1.5, 1.5, 2.5),
         lookat=(0, 0, 0),
         fov=30,
