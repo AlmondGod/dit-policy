@@ -4,6 +4,7 @@ import torch
 import imageio
 import sys
 import os
+from concurrent.futures import ThreadPoolExecutor, TimeoutError
 
 from IPython.display import clear_output
 clear_output(wait=True)
@@ -163,8 +164,22 @@ class DiffusionVisualizer:
             
             return noise_actions
 
-def timeout_handler(signum, frame):
-    raise TimeoutError("Render timed out")
+def render_with_timeout(cam, timeout_seconds=10):
+    with ThreadPoolExecutor() as executor:
+        future = executor.submit(
+            cam.render,
+            rgb=True,
+            depth=False,
+            segmentation=False,
+            normal=False
+        )
+        try:
+            rgb, depth, seg, normal = future.result(timeout=timeout_seconds)
+            torch.cuda.synchronize()
+            return rgb, depth, seg, normal
+        except TimeoutError:
+            torch.cuda.empty_cache()
+            return None, None, None, None
 
 def run_sim(scene, visualizer, frames, cam, particles):
     """Run simulation with visualization"""
@@ -199,7 +214,6 @@ def run_sim(scene, visualizer, frames, cam, particles):
             print("got positions")
 
             positions = positions[:n_particles, :3]
-
             positions = positions + noise
             
             print("updated positions with noise, setting particle positions")
@@ -208,60 +222,36 @@ def run_sim(scene, visualizer, frames, cam, particles):
             particles.set_position(positions)
 
             print("set particle positions, stepping scene")
-            # Before render
+            
+            # Before scene step
             torch.cuda.synchronize()  # Make sure all CUDA operations are done
             scene.step()
             torch.cuda.synchronize()  # Wait for step to complete
-
-            # After render timeout
-            torch.cuda.synchronize()  # Make sure GPU is in consistent state
-            torch.cuda.empty_cache()
-            
-            torch.cuda.synchronize()
             print("stepped scene")
+
+            # Before render
+            torch.cuda.synchronize()  # Ensure previous CUDA operations are done
+            torch.cuda.empty_cache()  # Clear CUDA memory before render
             
-            # Add error handling for render
             try:
-                # Set up timeout
-                signal(SIGALRM, timeout_handler)
-                alarm(10)  # 10 second timeout
+                rgb, depth, seg, normal = render_with_timeout(cam)
+                if rgb is not None:
+                    frames.append(rgb)
+                    print("rendered frame")
+                else:
+                    print("Render timed out after 10 seconds, skipping frame")
                 
-                rgb, depth, seg, normal = cam.render(
-                    rgb=True,
-                    depth=False, 
-                    segmentation=False,
-                    normal=False
-                )
-                
-                # Cancel the alarm
-                alarm(0)
-                
-                torch.cuda.synchronize()
-                print("rendered frame")
-            except TimeoutError:
-                print("Render timed out after 10 seconds, skipping frame")
-                alarm(0)  # Make sure to cancel alarm
-                torch.cuda.empty_cache()  # Clear CUDA memory
-                # Only try to update viewer if it exists
                 if scene.visualizer is not None and scene.visualizer._viewer is not None:
                     scene.visualizer._viewer.update()
-                rgb, depth, seg, normal = None, None, None, None
+                    
             except Exception as e:
                 print(f"Render failed with error: {e}")
-                alarm(0)
                 torch.cuda.empty_cache()
-                rgb, depth, seg, normal = None, None, None, None
-
-            if rgb is not None:
-                frames.append(rgb)
 
             t_now = time()
             print(t_now - t_prev, "time for step")
             t_prev = t_now
-            # sleep(0.0005)
 
-            torch.cuda.empty_cache()  # Clear CUDA cache
-            
             # Add small delay to allow system to stabilize
             sleep(0.1)
 
