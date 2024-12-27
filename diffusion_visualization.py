@@ -228,16 +228,24 @@ def run_sim(scene, visualizer, frames, cam, particles):
             print("stepped scene")
 
             def render_with_timeout(timeout_seconds=10):
+                # Make sure we're in a clean state before rendering
+                scene.visualizer._viewer.release_context()
+                
                 with ThreadPoolExecutor() as executor:
-                    future = executor.submit(cam.render,
+                    future = executor.submit(lambda: cam.render(
                         rgb=True,
                         depth=False,
                         segmentation=False,
                         normal=False
-                    )
+                    ))
                     try:
-                        return future.result(timeout=timeout_seconds)
+                        result = future.result(timeout=timeout_seconds)
+                        # Reacquire context after render
+                        scene.visualizer._viewer.make_context_current()
+                        return result
                     except TimeoutError:
+                        # Reacquire context on error
+                        scene.visualizer._viewer.make_context_current()
                         raise TimeoutError(f"Rendering timed out after {timeout_seconds} seconds")
 
             # Add error handling for render
@@ -254,8 +262,12 @@ def run_sim(scene, visualizer, frames, cam, particles):
                 rgb, depth, seg, normal = None, None, None, None
                 torch.cuda.empty_cache()
 
+            
+
             if rgb is not None:
                 frames.append(rgb)
+
+
 
             t_now = time()
             print(t_now - t_prev, "time for step")
