@@ -290,10 +290,7 @@ def main():
     print("torch.cuda.is_available()", torch.cuda.is_available())
     gs.init(backend=gs.cpu)
 
-    # add robot arm to scene
-    r0 = scene.add_entity(
-        gs.morphs.MJCF(file="xml/franka_emika_panda/panda.xml"),
-    )
+   
     
     scene = gs.Scene(
         sim_options=gs.options.SimOptions(
@@ -311,6 +308,11 @@ def main():
             camera_fov=30,
         ),
         show_viewer=False
+    )
+
+     # add robot arm to scene
+    r0 = scene.add_entity(
+        gs.morphs.MJCF(file="xml/franka_emika_panda/panda.xml"),
     )
     
     # First create the particles with a default color
