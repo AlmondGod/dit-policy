@@ -94,8 +94,6 @@ class DiffusionVisualizer:
             # The feature extractor is likely stored in visual_features
             self.vision_model = self.model.visual_features[0]  # Based on the checkpoint keys
             self.vision_model.eval()
-
-
             
             self.model._eval_diffusion_steps = 8
             self.diffusion_schedule = self.model.diffusion_schedule
@@ -223,39 +221,39 @@ def run_sim(scene, visualizer, frames, cam, particles):
             print("stepped scene")
             
             # Add error handling for render
-            try:
-                # Set up timeout
-                signal(SIGALRM, timeout_handler)
-                alarm(10)  # 10 second timeout
+            # try:
+            #     # Set up timeout
+            #     signal(SIGALRM, timeout_handler)
+            #     alarm(10)  # 10 second timeout
                 
-                rgb, depth, seg, normal = cam.render(
-                    rgb=True,
-                    depth=False, 
-                    segmentation=False,
-                    normal=False
-                )
+            #     rgb, depth, seg, normal = cam.render(
+            #         rgb=True,
+            #         depth=False, 
+            #         segmentation=False,
+            #         normal=False
+            #     )
                 
-                # Cancel the alarm
-                alarm(0)
+            #     # Cancel the alarm
+            #     alarm(0)
                 
-                torch.cuda.synchronize()
-                print("rendered frame")
-            except TimeoutError:
-                print("Render timed out after 10 seconds, skipping frame")
-                alarm(0)  # Make sure to cancel alarm
-                torch.cuda.empty_cache()  # Clear CUDA memory
-                # Only try to update viewer if it exists
-                if scene.visualizer is not None and scene.visualizer._viewer is not None:
-                    scene.visualizer._viewer.update()
-                rgb, depth, seg, normal = None, None, None, None
-            except Exception as e:
-                print(f"Render failed with error: {e}")
-                alarm(0)
-                torch.cuda.empty_cache()
-                rgb, depth, seg, normal = None, None, None, None
+            #     torch.cuda.synchronize()
+            #     print("rendered frame")
+            # except TimeoutError:
+            #     print("Render timed out after 10 seconds, skipping frame")
+            #     alarm(0)  # Make sure to cancel alarm
+            #     torch.cuda.empty_cache()  # Clear CUDA memory
+            #     # Only try to update viewer if it exists
+            #     if scene.visualizer is not None and scene.visualizer._viewer is not None:
+            #         scene.visualizer._viewer.update()
+            #     rgb, depth, seg, normal = None, None, None, None
+            # except Exception as e:
+            #     print(f"Render failed with error: {e}")
+            #     alarm(0)
+            #     torch.cuda.empty_cache()
+            #     rgb, depth, seg, normal = None, None, None, None
 
-            if rgb is not None:
-                frames.append(rgb)
+            # if rgb is not None:
+            #     frames.append(rgb)
 
             t_now = time()
             print(t_now - t_prev, "time for step")
