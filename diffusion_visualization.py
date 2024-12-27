@@ -290,31 +290,29 @@ def main():
     print("torch.cuda.is_available()", torch.cuda.is_available())
     gs.init(backend=gs.cpu)
 
-   
-    
     scene = gs.Scene(
         sim_options=gs.options.SimOptions(
             dt=4e-3, 
             substeps=20
         ),
         mpm_options=gs.options.MPMOptions(
-            lower_bound=(-4, -4, -4),  # Reduced from -2.0
-            upper_bound=(4, 4, 4),    # Reduced from 2.0
-            grid_density=1,  # Added to reduce memory usage
+            lower_bound=(-2, -2, -2),  # Reduced from -2.0
+            upper_bound=(2, 2, 2),    # Reduced from 2.0
+            grid_density=4,  # Added to reduce memory usage
         ),
-        viewer_options=gs.options.ViewerOptions(
-            camera_pos=(1.5, 1.5, 2.5),
-            camera_lookat=(0.0, 0.0, 0.0),
-            camera_fov=30,
-        ),
+        # viewer_options=gs.options.ViewerOptions(
+        #     camera_pos=(1.5, 1.5, 2.5),
+        #     camera_lookat=(0.0, 0.0, 0.0),
+        #     camera_fov=30,
+        # ),
         show_viewer=False
     )
 
-     # add robot arm to scene
-    r0 = scene.add_entity(
-        gs.morphs.MJCF(file="xml/franka_emika_panda/panda.xml"),
-    )
-    
+    # add robot arm to scene
+    # r0 = scene.add_entity(
+    #     gs.morphs.MJCF(file="xml/franka_emika_panda/panda.xml"),
+    # )
+
     # First create the particles with a default color
     particles = scene.add_entity(
         material=gs.materials.MPM.Liquid(),
@@ -332,16 +330,16 @@ def main():
     n_particles = particles._n_particles
     print(f"Number of particles: {n_particles}")
     
-    # Create rainbow gradient colors similar to render_particles.py circular trajectory
-    theta = np.linspace(0, 2*np.pi, n_particles)
-    colors = np.zeros((n_particles, 4))
-    colors[:, 0] = 0.5 + 0.5 * np.sin(theta)  # Red channel
-    colors[:, 1] = 0.5 + 0.5 * np.sin(theta + 2*np.pi/3)  # Green channel
-    colors[:, 2] = 0.5 + 0.5 * np.sin(theta + 4*np.pi/3)  # Blue channel
-    colors[:, 3] = 1.0  # Alpha channel
+    # # Create rainbow gradient colors similar to render_particles.py circular trajectory
+    # theta = np.linspace(0, 2*np.pi, n_particles)
+    # colors = np.zeros((n_particles, 4))
+    # colors[:, 0] = 0.5 + 0.5 * np.sin(theta)  # Red channel
+    # colors[:, 1] = 0.5 + 0.5 * np.sin(theta + 2*np.pi/3)  # Green channel
+    # colors[:, 2] = 0.5 + 0.5 * np.sin(theta + 4*np.pi/3)  # Blue channel
+    # colors[:, 3] = 1.0  # Alpha channel
     
-    # Set the colors after particle creation
-    particles.surface.color = colors
+    # # Set the colors after particle creation
+    # particles.surface.color = colors
 
     cam = scene.add_camera(
         res=(256, 192),
@@ -351,19 +349,26 @@ def main():
         GUI=False,
         denoise=False
     )
+
+    print("building scene")
     
     scene.build()
+
+    print("built scene")
 
     # render rgb, depth, segmentation, normal
     # rgb, depth, segmentation, normal = cam.render(rgb=True, depth=True, segmentation=True, normal=True)
     
     cam.start_recording()
 
+    print("started recording")
+
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     print(f"Using device: {device}")
     visualizer = DiffusionVisualizer(args.model_path, device=device)
     
-
+    print("visualizer built")
+    
     frames = []
     print("\nStarting simulation...")
     try:
