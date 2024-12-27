@@ -1,23 +1,17 @@
 import argparse
 import numpy as np
 import torch
-import imageio
-import sys
-import os
 from concurrent.futures import ThreadPoolExecutor, TimeoutError
 
 from IPython.display import clear_output
 clear_output(wait=True)
 
 import genesis as gs
-from pyvirtualdisplay import Display
-from IPython import display
 from data4robotics.models.diffusion import DiffusionTransformerAgent
 from observations import DummyObs
 from data4robotics.models.resnet import ResNet
 from time import time, sleep
 from datetime import datetime
-from signal import signal, alarm, SIGALRM
     
 
 class DiffusionVisualizer:
@@ -164,23 +158,6 @@ class DiffusionVisualizer:
             
             return noise_actions
 
-def render_with_timeout(cam, timeout_seconds=10):
-    with ThreadPoolExecutor() as executor:
-        future = executor.submit(
-            cam.render,
-            rgb=True,
-            depth=False,
-            segmentation=False,
-            normal=False
-        )
-        try:
-            rgb, depth, seg, normal = future.result(timeout=timeout_seconds)
-            torch.cuda.synchronize()
-            return rgb, depth, seg, normal
-        except TimeoutError:
-            torch.cuda.empty_cache()
-            return None, None, None, None
-
 def run_sim(scene, visualizer, frames, cam, particles):
     """Run simulation with visualization"""
     print("Starting simulation...")
@@ -234,19 +211,16 @@ def run_sim(scene, visualizer, frames, cam, particles):
             torch.cuda.empty_cache()  # Clear CUDA memory before render
             
             try:
-                rgb, depth, seg, normal = render_with_timeout(cam)
-                if rgb is not None:
-                    frames.append(rgb)
-                    print("rendered frame")
-                else:
-                    print("Render timed out after 10 seconds, skipping frame")
-                
-                if scene.visualizer is not None and scene.visualizer._viewer is not None:
-                    scene.visualizer._viewer.update()
-                    
+                rgb, depth, seg, normal = cam.render(
+                    rgb=False,
+                    depth=False, 
+                    segmentation=False,
+                    normal=False
+                )
+                print("rendered frame")
             except Exception as e:
                 print(f"Render failed with error: {e}")
-                torch.cuda.empty_cache()
+                rgb, depth, seg, normal = None, None, None, None
 
             t_now = time()
             print(t_now - t_prev, "time for step")
