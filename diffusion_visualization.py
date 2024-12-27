@@ -257,8 +257,8 @@ def main():
             substeps=20
         ),
         mpm_options=gs.options.MPMOptions(
-            lower_bound=(-0.2, -0.2, -0.2),  # Reduced from -2.0
-            upper_bound=(0.2, 0.2, 0.2),    # Reduced from 2.0
+            lower_bound=(-0.25, -0.25, -0.25),  # Reduced from -2.0
+            upper_bound=(0.25, 0.25, 0.25),    # Reduced from 2.0
             grid_density=10,  # Added to reduce memory usage
         ),
         # viewer_options=gs.options.ViewerOptions(
