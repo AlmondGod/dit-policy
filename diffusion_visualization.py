@@ -249,7 +249,7 @@ def main():
     # virtual_display.start()
     
     print("torch.cuda.is_available()", torch.cuda.is_available())
-    gs.init(backend=gs.cpu)
+    gs.init(backend=gs.cuda)
 
     scene = gs.Scene(
         sim_options=gs.options.SimOptions(
