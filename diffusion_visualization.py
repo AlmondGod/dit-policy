@@ -279,7 +279,7 @@ def main():
         material=gs.materials.MPM.Liquid(),
         morph=gs.morphs.Box(
             pos=(0.0, 0.0, 0.0),
-            size=(0.15, 0.15, 0.15)
+            size=(0.1, 0.1, 0.1)
         ),
         surface=gs.surfaces.Default(
             color=(0.2, 0.6, 1.0, 1.0),  # Default color
