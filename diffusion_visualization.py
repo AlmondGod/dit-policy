@@ -200,7 +200,7 @@ def run_sim(scene, visualizer, frames, cam, particles):
 
             print("got positions")
 
-            positions = positions[:114, :3]
+            positions = positions[:n_particles, :3]
 
             positions = positions + noise
             
