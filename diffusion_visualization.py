@@ -212,7 +212,7 @@ def run_sim(scene, visualizer, frames, cam, particles):
             
             try:
                 rgb, depth, seg, normal = cam.render(
-                    rgb=False,
+                    rgb=True,
                     depth=False, 
                     segmentation=False,
                     normal=False
