@@ -259,7 +259,7 @@ def main():
         mpm_options=gs.options.MPMOptions(
             lower_bound=(-2.0, -2.0, -2.0),  # Reduced from -2.0
             upper_bound=(2.0, 2.0, 2.0),    # Reduced from 2.0
-            grid_density=2,  # Added to reduce memory usage
+            grid_density=4,  # Added to reduce memory usage
         ),
         # viewer_options=gs.options.ViewerOptions(
         #     camera_pos=(1.5, 1.5, 2.5),
@@ -275,7 +275,7 @@ def main():
     )
 
     # add plane to scene
-    plane = scene.add_entity(gs.morphs.URDF(file="urdf/plane/plane.urdf", fixed=True))
+    # plane = scene.add_entity(gs.morphs.URDF(file="urdf/plane/plane.urdf", fixed=True))
 
 
     # First create the particles with a default color
