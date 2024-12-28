@@ -107,8 +107,6 @@ class DiffusionVisualizer:
     def run_diffusion_step(self, obs_dict, noise_actions, timestep):
         """Run a single step of the diffusion process"""
         with torch.no_grad():
-
-            # add print statements below
             print("running diffusion step")
             # Create proper observation format
             obs = DummyObs()
@@ -116,31 +114,32 @@ class DiffusionVisualizer:
             states = obs.state  # [state_dim]
             
             # Add batch and time dimensions and convert to tensors
-            images = torch.from_numpy(raw_image.copy()).float().to(self.device) / 255.0  # [H, W, C]
-            images = images.permute(2, 0, 1)  # [C, H, W]
-            images = images.unsqueeze(0)  # [1, C, H, W]
+            images = torch.from_numpy(raw_image.copy()).float().to(self.device) / 255.0
+            images = images.permute(2, 0, 1).unsqueeze(0)  # [1, C, H, W]
             
             print("processing states")
             states = torch.from_numpy(states.copy()).float().to(self.device)
             states = states.unsqueeze(0)  # [1, state_dim]
             
             # Format images as dictionary with camera keys
-            image_dict = {"cam0": images}  # Model expects dict with camera keys
+            image_dict = {"cam0": images}
             
             B = noise_actions.shape[0]
             s_t = self.model.tokenize_obs(image_dict, states)
-
+            
             print("tokenized obs")
             
-            # For transformer model, we need encoder cache
             if not hasattr(self, 'enc_cache'):
                 self.enc_cache = self.noise_net.forward_enc(s_t)
             
-            # Handle both tensor and integer timesteps
+            # Handle timesteps
             if isinstance(timestep, int):
                 batched_timestep = torch.tensor([timestep] * B).to(self.device)
             else:
                 batched_timestep = torch.tensor([timestep.item()] * B).to(self.device)
+            
+            # Project actions to model dimension before decoder
+            noise_actions = self.noise_net.ac_proj(noise_actions)
             
             noise_pred = self.noise_net.forward_dec(
                 noise_actions, batched_timestep, self.enc_cache
@@ -162,8 +161,9 @@ def run_sim(scene, visualizer, frames, cam, particles):
     """Run simulation with visualization"""
     print("Starting simulation...")
     
-    # Initialize noise actions with correct dimensions (batch_size=1, seq_len=1, hidden_dim=512)
-    noise_actions = torch.randn(1, 1, 512).to(visualizer.device)
+    # Initialize noise actions with correct dimensions (batch_size=1, action_dim=6)
+    # The model will handle the projection to higher dimensions
+    noise_actions = torch.randn(1, 6).to(visualizer.device)
     n_steps = 10  # Total number of steps
     n_particles = particles._n_particles
     
