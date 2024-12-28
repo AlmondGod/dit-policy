@@ -168,11 +168,19 @@ def run_sim(scene, visualizer, frames, cam, particles):
     n_particles = particles._n_particles
     
     # Get the end effector (hand) link for IK
-    robot = scene.entities[0]  # The Franka robot is the second entity
+    robot = scene.entities[0]  # The Franka robot is the first entity
     ee_link = robot.get_link("hand")
     
     # Set target orientation (pointing downwards)
     target_quat = np.array([0, 1, 0, 0])
+    
+    # Set control gains for smooth motion
+    robot.set_dofs_kp(
+        np.array([4500, 4500, 3500, 3500, 2000, 2000, 2000, 100, 100])
+    )
+    robot.set_dofs_kv(
+        np.array([450, 450, 350, 350, 200, 200, 200, 10, 10])
+    )
     
     t_prev = time()
     
@@ -186,12 +194,14 @@ def run_sim(scene, visualizer, frames, cam, particles):
             print("ran diffusion step")
             
             # Get positions from noise actions - only take first 3 dimensions
-            target_pos = noise_actions.cpu().numpy()[0, :3]  # Take only XYZ coordinates
+            # Convert to numpy and ensure correct shape
+            target_pos = noise_actions[0, :3].cpu().numpy()  # Take only XYZ coordinates from first batch item
+            print(f"Target position: {target_pos}")
             
             # Use IK to move the robot arm
             q = robot.inverse_kinematics(
                 link=ee_link,
-                pos=target_pos,
+                pos=target_pos,  # Now this should be a 1D array of size 3
                 quat=target_quat,
                 rot_mask=[False, False, True]  # Only restrict direction of z-axis
             )
