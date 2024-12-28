@@ -259,7 +259,7 @@ def main():
         mpm_options=gs.options.MPMOptions(
             lower_bound=(-2.8, -2.8, -2.8),  # Reduced from -2.0
             upper_bound=(2.8, 2.8, 2.8),    # Reduced from 2.0
-            grid_density=10,  # Added to reduce memory usage
+            grid_density=2,  # Added to reduce memory usage
         ),
         # viewer_options=gs.options.ViewerOptions(
         #     camera_pos=(1.5, 1.5, 2.5),
