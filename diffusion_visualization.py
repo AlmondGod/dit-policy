@@ -162,8 +162,8 @@ def run_sim(scene, visualizer, frames, cam, particles):
     """Run simulation with visualization"""
     print("Starting simulation...")
     
-    # Single noise action - changed to match expected shape (batch_size=3, action_dim=6)
-    noise_actions = torch.randn(3, 6).to(visualizer.device)
+    # Initialize noise actions with correct dimensions (batch_size=1, seq_len=1, hidden_dim=512)
+    noise_actions = torch.randn(1, 1, 512).to(visualizer.device)
     n_steps = 10  # Total number of steps
     n_particles = particles._n_particles
     
@@ -193,16 +193,18 @@ def run_sim(scene, visualizer, frames, cam, particles):
             noise_actions = visualizer.run_diffusion_step({}, noise_actions, timestep)
             print("ran diffusion step")
             
-            # Get positions from noise actions - only take first 3 dimensions from first batch item
-            target_pos = noise_actions[0, :3].cpu().numpy()  # Take only XYZ coordinates from first item
+            # Project the high-dimensional actions back to 6D space
+            # Assuming the first 6 dimensions correspond to the action space
+            action_6d = noise_actions[0, 0, :6].cpu().numpy()
+            target_pos = action_6d[:3]  # Take only XYZ coordinates
             print(f"Target position: {target_pos}")
             
             # Use IK to move the robot arm
             q = robot.inverse_kinematics(
                 link=ee_link,
-                pos=target_pos,  # Now this should be a 1D array of size 3
+                pos=target_pos,
                 quat=target_quat,
-                rot_mask=[False, False, True]  # Only restrict direction of z-axis
+                rot_mask=[False, False, True]
             )
             
             # Control the robot to move to the IK solution
