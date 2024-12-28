@@ -313,7 +313,7 @@ def main():
         # res=(64, 48),
         pos=(1.5, 1.5, 2.5),
         lookat=(0, 0, 0),
-        fov=30,
+        fov=60,
         GUI=False,
         denoise=False
     )
