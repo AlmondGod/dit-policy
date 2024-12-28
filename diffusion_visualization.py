@@ -138,8 +138,13 @@ class DiffusionVisualizer:
             else:
                 batched_timestep = torch.tensor([timestep.item()] * B).to(self.device)
             
+            # Print shapes for debugging
+            print(f"noise_actions shape: {noise_actions.shape}")
+            
             # Project actions to model dimension before decoder
-            noise_actions = self.noise_net.ac_proj(noise_actions)
+            # Add sequence dimension if needed
+            if len(noise_actions.shape) == 2:
+                noise_actions = noise_actions.unsqueeze(1)  # [B, 1, action_dim]
             
             noise_pred = self.noise_net.forward_dec(
                 noise_actions, batched_timestep, self.enc_cache
@@ -162,27 +167,13 @@ def run_sim(scene, visualizer, frames, cam, particles):
     print("Starting simulation...")
     
     # Initialize noise actions with correct dimensions (batch_size=1, action_dim=6)
-    # The model will handle the projection to higher dimensions
-    noise_actions = torch.randn(1, 6).to(visualizer.device)
+    noise_actions = torch.randn(1, 6).to(visualizer.device)  # [B, action_dim]
     n_steps = 10  # Total number of steps
     n_particles = particles._n_particles
     
     # Get the end effector (hand) link for IK
     robot = scene.entities[0]  # The Franka robot is the first entity
     ee_link = robot.get_link("hand")
-    
-    # Set target orientation (pointing downwards)
-    target_quat = np.array([0, 1, 0, 0])
-    
-    # Set control gains for smooth motion
-    robot.set_dofs_kp(
-        np.array([4500, 4500, 3500, 3500, 2000, 2000, 2000, 100, 100])
-    )
-    robot.set_dofs_kv(
-        np.array([450, 450, 350, 350, 200, 200, 200, 10, 10])
-    )
-    
-    t_prev = time()
     
     # Process one timestep at a time
     for timestep in range(n_steps):
@@ -193,9 +184,12 @@ def run_sim(scene, visualizer, frames, cam, particles):
             noise_actions = visualizer.run_diffusion_step({}, noise_actions, timestep)
             print("ran diffusion step")
             
-            # Project the high-dimensional actions back to 6D space
-            # Assuming the first 6 dimensions correspond to the action space
-            action_6d = noise_actions[0, 0, :6].cpu().numpy()
+            # Extract the action - remove sequence dimension if present
+            if len(noise_actions.shape) == 3:
+                noise_actions = noise_actions.squeeze(1)
+            
+            # Get positions from noise actions
+            action_6d = noise_actions[0, :6].cpu().numpy()  # Take first batch item's action
             target_pos = action_6d[:3]  # Take only XYZ coordinates
             print(f"Target position: {target_pos}")
             
