@@ -164,9 +164,15 @@ def run_sim(scene, visualizer, frames, cam, particles):
     
     # Single noise action
     noise_actions = torch.randn(1, 6).to(visualizer.device)
-    n_steps = 10 # Total number of steps
-    
+    n_steps = 10  # Total number of steps
     n_particles = particles._n_particles
+    
+    # Get the end effector (hand) link for IK
+    robot = scene.entities[1]  # The Franka robot is the second entity
+    ee_link = robot.get_link("hand")
+    
+    # Set target orientation (pointing downwards)
+    target_quat = np.array([0, 1, 0, 0])
     
     t_prev = time()
     
@@ -177,39 +183,34 @@ def run_sim(scene, visualizer, frames, cam, particles):
         with torch.no_grad():
             # Run single diffusion step
             noise_actions = visualizer.run_diffusion_step({}, noise_actions, timestep)
-            
             print("ran diffusion step")
             
             # Get positions from noise actions - only take first 3 dimensions
-            action = noise_actions.cpu().numpy()[0, :3]  # Take only XYZ coordinates [3]
+            target_pos = noise_actions.cpu().numpy()[0, :3]  # Take only XYZ coordinates
             
-            print("got noise actions")
-            # Create particle positions - reshape to match number of particles
-            positions = np.tile(action, (n_particles, 1))  # Shape will be (n_particles, 3)
+            # Use IK to move the robot arm
+            q = robot.inverse_kinematics(
+                link=ee_link,
+                pos=target_pos,
+                quat=target_quat,
+                rot_mask=[False, False, True]  # Only restrict direction of z-axis
+            )
+            
+            # Control the robot to move to the IK solution
+            robot.control_dofs_position(q)
+            
+            # Create particle positions around the target
+            positions = np.tile(target_pos, (n_particles, 1))
             noise = np.random.normal(0, 0.05, (n_particles, 3))
-
-            print("got positions")
-
-            positions = positions[:n_particles, :3]
             positions = positions + noise
             
-            print("updated positions with noise, setting particle positions")
-
             # Update particle positions
             particles.set_position(positions)
-
-            print("set particle positions, stepping scene")
             
-            # Before scene step
-            torch.cuda.synchronize()  # Make sure all CUDA operations are done
+            # Step physics
             scene.step()
-            torch.cuda.synchronize()  # Wait for step to complete
-            print("stepped scene")
-
-            # Before render
-            torch.cuda.synchronize()  # Ensure previous CUDA operations are done
-            torch.cuda.empty_cache()  # Clear CUDA memory before render
             
+            # Render frame
             try:
                 rgb, depth, seg, normal = cam.render(
                     rgb=True,
