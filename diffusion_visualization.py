@@ -162,8 +162,8 @@ def run_sim(scene, visualizer, frames, cam, particles):
     """Run simulation with visualization"""
     print("Starting simulation...")
     
-    # Single noise action
-    noise_actions = torch.randn(1, 6).to(visualizer.device)
+    # Single noise action - changed to match expected shape (batch_size=3, action_dim=6)
+    noise_actions = torch.randn(3, 6).to(visualizer.device)
     n_steps = 10  # Total number of steps
     n_particles = particles._n_particles
     
@@ -193,9 +193,8 @@ def run_sim(scene, visualizer, frames, cam, particles):
             noise_actions = visualizer.run_diffusion_step({}, noise_actions, timestep)
             print("ran diffusion step")
             
-            # Get positions from noise actions - only take first 3 dimensions
-            # Convert to numpy and ensure correct shape
-            target_pos = noise_actions[0, :3].cpu().numpy()  # Take only XYZ coordinates from first batch item
+            # Get positions from noise actions - only take first 3 dimensions from first batch item
+            target_pos = noise_actions[0, :3].cpu().numpy()  # Take only XYZ coordinates from first item
             print(f"Target position: {target_pos}")
             
             # Use IK to move the robot arm
