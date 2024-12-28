@@ -263,9 +263,9 @@ def main():
             substeps=20
         ),
         mpm_options=gs.options.MPMOptions(
-            lower_bound=(-1.0, -1.0, -1.0),  # Reduced from -2.0
-            upper_bound=(1.0, 1.0, 1.0),    # Reduced from 2.0
-            grid_density=8,  # Added to reduce memory usage
+            lower_bound=(-0.35, -0.35, -0.35),  # Reduced from -2.0
+            upper_bound=(0.35, 0.35, 0.35),    # Reduced from 2.0
+            grid_density=10,  # Added to reduce memory usage
         ),
         # viewer_options=gs.options.ViewerOptions(
         #     camera_pos=(1.5, 1.5, 2.5),
@@ -289,7 +289,7 @@ def main():
         material=gs.materials.MPM.Liquid(),
         morph=gs.morphs.Box(
             pos=(0.0, 0.0, 0.0),
-            size=(0.5, 0.5, 0.5)
+            size=(0.15, 0.15, 0.15)
         ),
         surface=gs.surfaces.Default(
             color=(0.2, 0.6, 1.0, 1.0),  # Default color
