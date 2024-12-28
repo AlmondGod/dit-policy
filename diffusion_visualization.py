@@ -168,7 +168,8 @@ def run_sim(scene, visualizer, frames, cam, particles):
     n_particles = particles._n_particles
     
     # Get the end effector (hand) link for IK
-    robot = scene.entities[1]  # The Franka robot is the second entity
+    print(f"scene entities: {scene.entities}")
+    robot = scene.entities[2]  # The Franka robot is the second entity
     ee_link = robot.get_link("hand")
     
     # Set target orientation (pointing downwards)
